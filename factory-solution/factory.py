@@ -62,9 +62,22 @@ def initAllPlcs():
     plcs.append(initPlc(SERVER_HOST_4, SERVER_PORT))
     return plcs
 
+##
+# set all the coils of the plc to 0
+def clearCoils(plc):
+    if plc.is_open():
+        # plc_2.write_single_coil(0, False)  # Sorter - right
+        # plc_2.write_single_coil(1, False)  # Sorter - left
+        # plc_2.write_single_coil(2, False)  # Right emitter
+        # plc_2.write_single_coil(3, False)  # Left emitter
+
+        # [Sorter - right, Sorter - left, Right emitter, Left emitter]
+        plc.write_multiple_coils(0, [False, False, False, False])
+        time.sleep(0.1)
 
 ## The main function.
 def main():
+
     # array of plcs == [plc-252, plc-253, plc-254]
     plcs = initAllPlcs()
 
@@ -73,6 +86,13 @@ def main():
         if checkConnectivity(plc) == False:
             exit()
     
+    # clear coils 
+    for plc in plcs:
+        clearCoils(plc)
+
+
+
+
 
     print("wuui")
 
