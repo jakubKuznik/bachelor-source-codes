@@ -17,8 +17,9 @@ PLC=( "192.168.88.252" "192.168.88.253" "192.168.88.254" )
 
 for ip in "${PLC[@]}"; do
   #todo modify /etc/default/unipi-modbus 
-  echo "Starting tcp server on: $ip"
   # todo generate ssh keys between machines 
-  ssh unipi@$ip 'echo "DAEMON OPTS=--listen=0.0.0.0" | sudo tee -a /etc/default/unipi-modbus-tools > /dev/null' 
+  echo "Starting tcp server on: $ip"
+  scp unipitcp unipi@$ip:/etc/default/unipitcp
   ssh unipi@$ip 'sudo systemctl restart unipitcp'
+
 done

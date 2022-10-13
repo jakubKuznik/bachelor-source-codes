@@ -4,6 +4,7 @@
 # institution: VUT FIT 
 # Description: 
 
+from asyncore import read
 from pyModbusTCP.client import ModbusClient
 import time
 import sys
@@ -29,6 +30,32 @@ SERVER_PORT = 502
 
 #plc_4.host(SERVER_HOST_4)
 #plc_4.port(SERVER_PORT)
+
+
+#TODO
+class PLC:
+    def __init__(self):
+        self.do1 = False
+        self.do2 = False
+        self.do3 = False
+        self.do4 = False
+        
+        self.di1 = False
+        self.di2 = False
+        self.di3 = False
+        self.di4 = False
+
+        self.ai0 = 0.0
+        self.ai1 = 0.0
+    
+
+    def updateDi():
+        #TODO
+        print(" ")
+    
+    def updateDi():
+        #TODO
+        print(" ")
 
 ##
 # Will twice check if plc is reachable 
@@ -75,10 +102,22 @@ def clearCoils(plc):
         plc.write_multiple_coils(0, [False, False, False, False])
         time.sleep(0.1)
 
+##
+# do the program (iniinite loop) 
+def doProgram(plcs):
+    while True: 
+        print("hello world")
+
+        # read on addres 4 read 4 bits 
+        # [ IDO4, IDO5, IDO6, IDO7] 
+        print(plcs[0].read_coils(4, 4))
+        
+        time.sleep(0.5)
+
 ## The main function.
 def main():
 
-    # array of plcs == [plc-252, plc-253, plc-254]
+    # array of plcs == [plc-2, plc-3, plc-4]
     plcs = initAllPlcs()
 
     # Check if i can connect to every plc 
@@ -90,6 +129,10 @@ def main():
     for plc in plcs:
         clearCoils(plc)
 
+
+    # TODO MAYBE SOME CLASS FOR PLC WHERE ALL THE PORTS WILL HAVE SOME NAME 
+    #       I COULD INSTANTCIATE PLC THEN..
+    doProgram(plcs)
 
 
 
