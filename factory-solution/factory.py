@@ -5,6 +5,7 @@
 # Description: 
 
 from asyncore import read
+from turtle import clear
 from pyModbusTCP.client import ModbusClient
 import time
 import sys
@@ -17,66 +18,81 @@ SERVER_HOST_4 = "192.168.88.254"  # PLC4
 SERVER_PORT = 502
 
 
-#plc_2 = ModbusClient()
-#plc_3 = ModbusClient()
-#plc_4 = ModbusClient()
-
-# define modbus server host, port
-#plc_2.host(SERVER_HOST_2)
-#plc_2.port(SERVER_PORT)
-
-#plc_3.host(SERVER_HOST_3)
-#plc_3.port(SERVER_PORT)
-
-#plc_4.host(SERVER_HOST_4)
-#plc_4.port(SERVER_PORT)
-
-
-#TODO
-class PLC:
-    def __init__(self):
+##
+# Class Plc represents one "UniPi Neuron S103" PLC
+#  user should get all the information about plc from here 
+#
+#  ----|-------|------|-----|-------|----- 
+#  -  DI1     DI2    DI3   DI4     Ai0   -
+#  -                                     - 
+#  -         UniPi Neuron S103           ------ETH----- 
+#  -                                     -
+#  -  DO1     DO2    DO3   DO4     Ao0   -
+#  ----|--------|-----|------|------|------
+#
+class Plc:
+    def __init__(self, ip, port):
+        # Modbus device 
+        self.plc      = ModbusClient()
+        self.plc.host = ip
+        self.plc.port = port
+        
+        # digital inputs 
+        self.di1 = False
+        self.di2 = False
+        self.di3 = False
+        self.di4 = False
+        
+        # digital outputs 
         self.do1 = False
         self.do2 = False
         self.do3 = False
         self.do4 = False
         
-        self.di1 = False
-        self.di2 = False
-        self.di3 = False
-        self.di4 = False
-
+        # analoginputs outputs 
+        self.ao0 = 0.0
         self.ai0 = 0.0
-        self.ai1 = 0.0
+
+        # clear Digital outputs  
+        self.clearDo(self)
+
+    ##
+    # Will twice check if plc is reachable 
+    # @return true if plc is reachable 
+    # return false if not 
+    def checkConnectivity(self):
+        if not self.plc.is_open():
+            if not self.plc.is_open():
+                print("Unable to connect to " + str(self.plc.host) ":" + str(self.plc.port))
+                return False
+        return True
     
+
+    ##
+    # set all the digital outputs to 0
+    def clearDo(self):
+        if self.plc.is_open():
+            # plc_2.write_single_coil(0, False)  # Sorter - right
+            # plc_2.write_single_coil(1, False)  # Sorter - left
+            # plc_2.write_single_coil(2, False)  # Right emitter
+           # plc_2.write_single_coil(3, False)  # Left emitter
+
+            # [Sorter - right, Sorter - left, Right emitter, Left emitter]
+            self.plc.write_multiple_coils(0, [False, False, False, False])
+            self.do1 = self.do2 = self.do3 = self.do4 = False
+            time.sleep(0.1)
+
 
     def updateDi():
         #TODO
+        isRunning = plc_2.read_coils(4, 1)[0]
+
         print(" ")
     
     def updateDi():
         #TODO
         print(" ")
 
-##
-# Will twice check if plc is reachable 
-# @return true if plc is reachable 
-# @return false if not 
-def checkConnectivity(plc):
-    if not plc.is_open():
-        if not plc.is_open():
-            print("Unable to connect to " + plc.host ":" + str(plc.port))
-            return False
-    return True
-
-
-##
-# create a plc instance
-# return plc (ModbusClient) instance  
-def initPlc(ip, port):
-    plc      = ModbusClient()
-    plc.host = ip
-    plc.port = port
-    return initPlc
 
 ## 
 # call initPlc with SERVER_HOST_2-4 and SERVER_PORT 
@@ -84,23 +100,10 @@ def initPlc(ip, port):
 #    array of plcs == [plc-252, plc-253, plc-254]
 def initAllPlcs():
     plcs = []
-    plcs.append(initPlc(SERVER_HOST_2, SERVER_PORT))
-    plcs.append(initPlc(SERVER_HOST_3, SERVER_PORT))
-    plcs.append(initPlc(SERVER_HOST_4, SERVER_PORT))
+    plcs.append(Plc(SERVER_HOST_2, SERVER_PORT))
+    plcs.append(Plc(SERVER_HOST_3, SERVER_PORT))
+    plcs.append(Plc(SERVER_HOST_4, SERVER_PORT))
     return plcs
-
-##
-# set all the coils of the plc to 0
-def clearCoils(plc):
-    if plc.is_open():
-        # plc_2.write_single_coil(0, False)  # Sorter - right
-        # plc_2.write_single_coil(1, False)  # Sorter - left
-        # plc_2.write_single_coil(2, False)  # Right emitter
-        # plc_2.write_single_coil(3, False)  # Left emitter
-
-        # [Sorter - right, Sorter - left, Right emitter, Left emitter]
-        plc.write_multiple_coils(0, [False, False, False, False])
-        time.sleep(0.1)
 
 ##
 # do the program (iniinite loop) 
@@ -118,26 +121,20 @@ def doProgram(plcs):
 def main():
 
     # array of plcs == [plc-2, plc-3, plc-4]
+    # array with instances of Plc class
     plcs = initAllPlcs()
-
-    # Check if i can connect to every plc 
-    for plc in plcs:
-        if checkConnectivity(plc) == False:
-            exit()
     
-    # clear coils 
+    # check if all plcs are reachable  
     for plc in plcs:
-        clearCoils(plc)
+        if plc.checkConectivity() == False:
+            exit()
 
-
-    # TODO MAYBE SOME CLASS FOR PLC WHERE ALL THE PORTS WILL HAVE SOME NAME 
-    #       I COULD INSTANTCIATE PLC THEN..
     doProgram(plcs)
 
 
 
 
-    print("wuui")
+    print("Program end")
 
 
 main()
