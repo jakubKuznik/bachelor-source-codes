@@ -30,7 +30,7 @@ SERVER_PORT = 502
 class Plc:
     def __init__(self, ip):
         # Modbus device 
-        self.plc = ModbusClient(host=ip, port=SERVER_PORT, debug=True)
+        self.plc = ModbusClient(host=ip, port=SERVER_PORT)
         self.plc.open() # open tcp connection 
      
         # digital inputs 
@@ -51,10 +51,10 @@ class Plc:
 
         # clear Digital outputs  
         self.clearDo()
+        time.sleep(0.05)
 
     def getFactoryIo(self):
         return self.di1
-
     
     # TODO each input output can have function with same name as in factory io 
     def updateDi(self):
@@ -63,8 +63,6 @@ class Plc:
         self.di2 = all[1]
         self.di2 = all[2]
         self.di2 = all[3]
-    
-    
     
     ##
     # Will twice check if plc is reachable 
@@ -79,7 +77,15 @@ class Plc:
                 print(self.plc)
                 return False
         return True
-    
+
+    ##
+    # Write digital outputs
+    def writeDo(self):
+        self.plc.write_single_coil(0, self.do1)  # Bases emitter
+        self.plc.write_single_coil(1, self.do2)  # Bases emitter
+        self.plc.write_single_coil(2, self.do3)  # Bases emitter
+        self.plc.write_single_coil(3, self.do4)  # Bases emitter
+
 
     ##
     # set all the digital outputs to 0
@@ -88,11 +94,12 @@ class Plc:
             # [Sorter - right, Sorter - left, Right emitter, Left emitter]
             self.plc.write_multiple_coils(0, [False, False, False, False])
             self.do1 = self.do2 = self.do3 = self.do4 = False
-            time.sleep(0.1)
     
     ######### DEBUG SECTION 
     def debugDi(self):
         print(str(self.di1), str(self.di2),  str(self.di3), str(self.di4))
+    def debugDo(self):
+        print(str(self.do1), str(self.do2),  str(self.do3), str(self.do4))
     #######################
 
     ##
@@ -114,23 +121,33 @@ def initAllPlcs():
     return plcs
 
 ##
-# do the program (iniinite loop) 
+# do the program (infinite loop) 
 def doProgram(plcs):
     plcs[0].updateDi()
     plcs[0].debugDi()
-    print("....")
+    
+
     while plcs[0].di1 == True:
          
-        print("hello world")
-
         # read on addres 4 read 4 bits 
         # [ IDO4, IDO5, IDO6, IDO7] 
         plcs[0].updateDi()
+        time.sleep(0.1)
         plcs[0].debugDi()
-        print(plcs[0]) 
-        
-        time.sleep(0.5)
-        plcs
+
+        plcs[0].do1 = True 
+        plcs[0].writeDo()
+        plcs[0].debugDo()
+        time.sleep(0.2)
+        plcs[0].clearDo()
+        plcs[0].debugDo()
+        time.sleep(0.1)
+        print()
+
+        plcs[0].updateDi()
+        time.sleep(0.1)
+
+
 
 ## The main function.
 def main():
