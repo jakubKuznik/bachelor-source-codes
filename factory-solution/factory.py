@@ -4,6 +4,8 @@
 # institution: VUT FIT 
 # Description: 
 
+from pickle import TRUE
+from tkinter.tix import Tree
 from pyModbusTCP.client import ModbusClient
 import time
 
@@ -13,7 +15,6 @@ SERVER_HOST_4 = "192.168.88.254"  # PLC4
 
 # port, same for all PLCs
 SERVER_PORT = 502
-
 
 ##
 # Class Plc represents one "UniPi Neuron S103" PLC
@@ -53,6 +54,20 @@ class Plc:
         self.clearDo()
         time.sleep(0.05)
 
+    ##
+    # Write nth DO and sleep
+    def writeDo(self, nth ,sleep):
+        if nth == 1:    self.do1 = True 
+        elif nth == 2:  self.do2 = True 
+        elif nth == 3:  self.do3 = True 
+        elif nth == 4:  self.do4 = True 
+
+
+        self.applyDo()
+        time.sleep(sleep)
+        self.clearDo()
+
+    
     def getFactoryIo(self):
         return self.di1
     
@@ -61,8 +76,8 @@ class Plc:
         all      = self.plc.read_coils(4, 4)
         self.di1 = all[0]
         self.di2 = all[1]
-        self.di2 = all[2]
-        self.di2 = all[3]
+        self.di3 = all[2]
+        self.di4 = all[3]
     
     ##
     # Will twice check if plc is reachable 
@@ -80,7 +95,7 @@ class Plc:
 
     ##
     # Write digital outputs
-    def writeDo(self):
+    def applyDo(self):
         self.plc.write_single_coil(0, self.do1)  # Bases emitter
         self.plc.write_single_coil(1, self.do2)  # Bases emitter
         self.plc.write_single_coil(2, self.do3)  # Bases emitter
@@ -126,26 +141,26 @@ def doProgram(plcs):
     plcs[0].updateDi()
     plcs[0].debugDi()
     
+    PAUSE=0.05
 
     while plcs[0].di1 == True:
          
         # read on addres 4 read 4 bits 
         # [ IDO4, IDO5, IDO6, IDO7] 
         plcs[0].updateDi()
-        time.sleep(0.1)
-        plcs[0].debugDi()
+        time.sleep(PAUSE)
 
-        plcs[0].do1 = True 
-        plcs[0].writeDo()
-        plcs[0].debugDo()
-        time.sleep(0.2)
-        plcs[0].clearDo()
-        plcs[0].debugDo()
-        time.sleep(0.1)
-        print()
+        # move roller 
+        plcs[0].writeDo(1, PAUSE)
+
+        ## diffuse sensor trigger 
+        if plcs[0].di2 == True:
+            print("sensor")
+
+
 
         plcs[0].updateDi()
-        time.sleep(0.1)
+        time.sleep(PAUSE)
 
 
 

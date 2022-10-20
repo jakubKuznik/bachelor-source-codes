@@ -24,7 +24,6 @@ SERVER_HOST_2 = "192.168.88.252"  # PLC2
 SERVER_PORT = 502
 
 
-
 plc = ModbusClient(host=SERVER_HOST_2, port=SERVER_PORT)
 
 plc.open()
