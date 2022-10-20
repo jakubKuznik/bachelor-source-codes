@@ -13,12 +13,11 @@
 
 
 ######### PREVENCE 
+# - symetricka || asymetricke klice mezi stanicemi a "Controllerem" 
 # - nepovolovat tcp spojeni ze vsech addres 
 # - obvykle plc posilaji signaly na DO v nejakych intervalech napriklad 0.1s pokud se nekdo 
 #   snazi vynulovavat DO velmi rychle melo by to jit videt ve statistikach netflow  
-# - ssh klice (mozna) ???? 
 
-from pickle import FALSE
 from pyModbusTCP.client import ModbusClient
 
 SERVER_HOST_2 = "192.168.88.252"  # PLC2
@@ -26,9 +25,7 @@ SERVER_PORT = 502
 
 
 
-plc = ModbusClient()
-plc.host(SERVER_HOST_2)
-plc.port(SERVER_PORT)
+plc = ModbusClient(host=SERVER_HOST_2, port=SERVER_PORT)
 
 plc.open()
 
