@@ -131,6 +131,7 @@ class Plc:
         self.plc.write_single_coil(2, self.do2)  # Bases emitter
         self.plc.write_single_coil(3, self.do3)  # Bases emitter
 
+
     ##
     # set all the digital outputs to 0
     def clearDo(self):
@@ -152,6 +153,7 @@ class Plc:
         print("end tcp sessions")
         self.plc.close() # end tcp connection 
 
+
 ## 
 # call initPlc with SERVER_HOST_2-4 and SERVER_PORT 
 # @return array with all the plcs4
@@ -166,14 +168,37 @@ def initAllPlcs():
 ##
 # do the program (infinite loop) 
 def doProgram(plcs):
+    PAUSE_SHORT=0.2
     PAUSE=0.5
     PAUSE_LONG=1
     PAUSE_LONGEST=1.1
 
+    while True:
+        plcs[0].updateDi()
+        plcs[0].debugDi()
+
+        ## base block
+        #plcs[0].writeDo(3, PAUSE)
+        ## GRAB 
+        # plcs[0].writeDo(2, PAUSE)
+        
+        ## handle X 
+        #plcs[0].writeDo(1, PAUSE)
+        ## handle Z
+        #plcs[0].writeDo(0, PAUSE)
+        
+        ## Base move 
+        #plcs[2].writeDo(3, PAUSE)
+        ## Lid move
+        #plcs[2].writeDo(2, PAUSE)
+        break
+
     ## Progam not enabled 
     plcs[1].updateDi()
     while plcs[1].di3 == True:
+        print("tu")
         plcs[1].updateDi()
+
 
     # while factory io is running 
     plcs[1].updateDi()
@@ -215,12 +240,16 @@ def doProgram(plcs):
         
         plcs[0].writeDoNoClear(3, PAUSE_LONG, False) # MOVE BLOCKADE DOWN
 
+
+        
         plcs[0].updateDi()
         time.sleep(PAUSE)
 
 
+
 ## The main function.
 def main():
+
     
     # array of plcs == [plc-2, plc-3, plc-4]
     # array with instances of Plc class
@@ -233,6 +262,10 @@ def main():
             exit()
 
     doProgram(plcs)
+
+
+
+
     print("Program end")
 
 
