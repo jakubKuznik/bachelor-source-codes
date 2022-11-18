@@ -7,7 +7,9 @@
 from pickle import TRUE
 from pyModbusTCP.client import ModbusClient
 import time
+import numpy
 
+SERVER_HOST_1 = "192.168.88.251"  # PLC2
 SERVER_HOST_2 = "192.168.88.252"  # PLC2
 SERVER_HOST_3 = "192.168.88.253"  # PLC3
 SERVER_HOST_4 = "192.168.88.254"  # PLC4
@@ -154,15 +156,69 @@ class Plc:
         self.plc.close() # end tcp connection 
 
 
+# class represents warehouse 9x6
+# [0,0] [0,1] ... [0,8]
+# [1,0] [1,1] ... [1,8]
+#   .     .    .    .
+#   .     .    .    .
+# [5,0] [5,1] ... [5,8]
+class Warehouse:
+    
+    def __init__(self):
+        self.matrix = numpy.full((6, 9), False)
+
+    def printMatrix(self):
+        print(self.matrix)
+
+    def findFree(self):
+        for y in range(0,5):
+            for x in range(0,8):
+                if self.matrix[y,x] == False:
+                    return y, x 
+        return -1
+
+    # (0,0) == 110 110
+    # (0,1)
+    def calcIndex(self):
+        # if warehouse is full 
+        if self.findFree == -1:
+            return -1
+
+        position = 0
+        wareSize = 54 # (0,0) will be on 54 
+                      # (6,9) will be on  1
+        rowLenght = 9
+
+        a = 0       # temp variable 
+        row = 0     
+        column = 0
+        # transform matrix cordinates to two number 
+        for i in self.findFree():
+            if a == 0:
+                row = i
+            else:
+                column = i
+            a = a+1
+
+        position = wareSize - rowLenght*row - column
+        return position
+
+
+
 ## 
 # call initPlc with SERVER_HOST_2-4 and SERVER_PORT 
 # @return array with all the plcs4
 #    array of plcs == [plc-252, plc-253, plc-254]
 def initAllPlcs():
     plcs = []
+    plcs.append(Plc(SERVER_HOST_1))
     plcs.append(Plc(SERVER_HOST_2))
     plcs.append(Plc(SERVER_HOST_3))
     plcs.append(Plc(SERVER_HOST_4))
+    plcs[0].writeMultipleDoNoClear([False, False, False, False], 0)
+    plcs[1].writeMultipleDoNoClear([False, False, False, False], 0)
+    plcs[2].writeMultipleDoNoClear([False, False, False, False], 0)
+    plcs[3].writeMultipleDoNoClear([False, False, False, False], 0)
     return plcs
 
 ##
@@ -173,83 +229,107 @@ def doProgram(plcs):
     PAUSE_LONG=1
     PAUSE_LONGEST=1.1
 
-    while True:
-        plcs[0].updateDi()
-        plcs[0].debugDi()
 
-        ## base block
-        #plcs[0].writeDo(3, PAUSE)
-        ## GRAB 
-        # plcs[0].writeDo(2, PAUSE)
-        
-        ## handle X 
-        #plcs[0].writeDo(1, PAUSE)
-        ## handle Z
-        #plcs[0].writeDo(0, PAUSE)
-        
-        ## Base move 
-        #plcs[2].writeDo(3, PAUSE)
-        ## Lid move
-        #plcs[2].writeDo(2, PAUSE)
+    while True:
+        #plcs[0].writeDo(0, PAUSE, True) DI7
+        #plcs[0].writeDo(1, PAUSE, True) DI6
+        #plcs[0].writeDo(2, PAUSE, True) DI5
+        #plcs[0].writeDo(3, PAUSE, True) DI4
+        #plcs[0].updateDi()
+        # DO0 = IDO0, DO3 = IDO3
+        #plcs[0].debugDi()
         break
 
     ## Progam not enabled 
     plcs[1].updateDi()
     while plcs[1].di3 == True:
-        print("tu")
         plcs[1].updateDi()
 
+    # MATRIX 6x9
+    ware = Warehouse()
+    ware.printMatrix() 
 
     # while factory io is running 
-    plcs[1].updateDi()
-    while plcs[1].di0 == True:
+    plcs[2].updateDi()
+    while plcs[2].di0 == True:
 
         # Move roller till item reach gripper  
-        while True:
-            plcs[1].updateDi()
-            # both move 
-            if plcs[1].di1 == 0 and plcs[1].di2 == 0:
-                plcs[2].writeMultipleDo([False, False, True, True], PAUSE)
-            # lid move 
-            elif plcs[1].di1 == 1 and plcs[1].di2 == 0:
-                plcs[2].writeDo(3, PAUSE, True)
-            # base move 
-            elif plcs[1].di1 == 0 and plcs[1].di2 == 1:
-                plcs[2].writeDo(2, PAUSE, True)
-            else:
-                break
-
-        # Clamp lid and place 
-        plcs[2].writeMultipleDoNoClear([True, True, False, False], PAUSE_LONG)
-        plcs[2].writeMultipleDoNoClear([False, False, True, True], PAUSE)
-        plcs[2].writeMultipleDoNoClear([False, False, False, False], PAUSE)
-
-        plcs[0].writeDoNoClear(0, PAUSE_LONG, True)  # MOVE Z DOWN 
-        plcs[0].writeDoNoClear(2, PAUSE, True)       # GRAB 
-        plcs[0].writeDoNoClear(0, PAUSE_LONG, False) # MOVE Z UP 
-        plcs[0].writeDoNoClear(1, PAUSE_LONG, TRUE)  # MOVE X 
-        plcs[0].writeDoNoClear(0, PAUSE_LONG, True)  # MOVE Z DOWN 
-        plcs[0].writeDoNoClear(2, PAUSE, False)      # Release GRAB 
-        # MOVE gripper to the base position 
-        plcs[0].writeDoNoClear(0, PAUSE_LONG, False)  # MOVE Z UP
-        plcs[0].writeDoNoClear(1, PAUSE_LONG, False)  # MOVE X BACK
+        plcs[2].updateDi()
+        plcs[2].debugDi()
+        while plcs[2].di1 == False:
+            #do0 First entry roller do1 second entry roller 
+            plcs[1].writeMultipleDo([True, True, False, False], PAUSE) 
+            plcs[2].updateDi()
         
+        plcs[0].writeDoNoClear(0, PAUSE_LONG, True)   # FORK INPUT
+        plcs[0].writeDoNoClear(1, PAUSE_LONG, True)   # FORK LIFT UP
+        plcs[0].writeDoNoClear(0, PAUSE_LONG, False)  # FORK INPUT BACK 
+        plcs[0].writeDoNoClear(1, PAUSE_LONG, False)  # FORK LIFT DOWN
 
-        plcs[0].writeDoNoClear(3, PAUSE_LONG, True) # MOVE BLOCKADE UP
-        plcs[2].writeMultipleDo([False, False, True, True], PAUSE_LONGEST) # move rollers
+        ware.findFree()
+        print(ware.matrix)
+        ware.matrix((9,6), True)
+        print(ware.matrix)
+        # 0 == IDI11  - LSB
+        # 1 == IDI10
+        # 2 == IDI9
+        # 3 == IDI8
+        # 4 == IDI3
+        # 5 == IDI2   - MSB  
+
+        # 0    0  0  0  0  0
+        # 32  16  8  4  2  1
         
-        plcs[0].writeDoNoClear(3, PAUSE_LONG, False) # MOVE BLOCKADE DOWN
+        # default   == 000 000
+        # (1,1)     == 000 001   uplne vlevo dole 
+        # (6,1)     == 000 111
+        # (7,1)     == 001 000
+        # (8,1)     == 001 001
+        # (1,1)     == 001 010
+        # (8,6)     == 110 101
+        # (9,6)     == 110 110    uplne vlevo nahore 
+        plcs[2].writeDoNoClear(0, PAUSE, False) # LSB
+        plcs[2].writeDoNoClear(1, PAUSE, True)
+        plcs[2].writeDoNoClear(2, PAUSE, True)
+        plcs[2].writeDoNoClear(3, PAUSE, False)
+        plcs[3].writeDoNoClear(0, PAUSE, True)
+        plcs[3].writeDoNoClear(1, PAUSE, True) # MSB
 
 
-        
-        plcs[0].updateDi()
-        time.sleep(PAUSE)
+
+
+
+    plcs[1].updateDi()
+
+
 
 
 
 ## The main function.
 def main():
+    
+    ware = Warehouse()
+    print(ware.findFree())
+    print(ware.calcIndex())
+    print(ware.matrix)
+    ware.matrix.itemset((0,0), True)
+    ware.matrix.itemset((0,1), True)
+    ware.matrix.itemset((0,2), True)
+    ware.matrix.itemset((0,3), True)
+    ware.matrix.itemset((0,4), True)
+    ware.matrix.itemset((0,5), True)
+    ware.matrix.itemset((0,6), True)
+    ware.matrix.itemset((0,7), True)
+    ware.matrix.itemset((0,8), True)
+    print(ware.findFree())
 
+    print("hihi")
+    for i in ware.findFree():
+        print(i)
+    print("hihi")
+    print(ware.calcIndex())
+    print(ware.matrix)
+    exit()
     
     # array of plcs == [plc-2, plc-3, plc-4]
     # array with instances of Plc class
