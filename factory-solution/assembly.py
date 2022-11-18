@@ -2,7 +2,7 @@
 # File name: factory.py 
 # Authors: Jakub Kuzník <xkuzni04>
 # institution: VUT FIT 
-# Description: 
+# Description: Soulution for simple assembly line. 
 
 from pickle import TRUE
 from pyModbusTCP.client import ModbusClient
@@ -98,10 +98,8 @@ class Plc:
         self.applyDo()
         time.sleep(sleep)
     
-    def getFactoryIo(self):
-        return self.di0
-    
-    # TODO each input output can have function with same name as in factory io 
+    ## 
+    # Update all digital inputs 
     def updateDi(self):
         all      = self.plc.read_coils(4, 4)
         self.di0 = all[0]
@@ -131,7 +129,6 @@ class Plc:
         self.plc.write_single_coil(2, self.do2)  # Bases emitter
         self.plc.write_single_coil(3, self.do3)  # Bases emitter
 
-
     ##
     # set all the digital outputs to 0
     def clearDo(self):
@@ -139,7 +136,8 @@ class Plc:
             # [Sorter - right, Sorter - left, Right emitter, Left emitter]
             self.plc.write_multiple_coils(0, [False, False, False, False])
             self.do0 = self.do1 = self.do2 = self.do3 = False
-    
+
+
     ######### DEBUG SECTION 
     def debugDi(self):
         print(str(self.di0), str(self.di1),  str(self.di2), str(self.di3))
@@ -222,8 +220,6 @@ def doProgram(plcs):
         
         plcs[0].writeDoNoClear(3, PAUSE_LONG, False) # MOVE BLOCKADE DOWN
 
-
-        
         plcs[0].updateDi()
         time.sleep(PAUSE)
 
@@ -231,7 +227,6 @@ def doProgram(plcs):
 
 ## The main function.
 def main():
-
     
     # array of plcs == [plc-2, plc-3, plc-4]
     # array with instances of Plc class
@@ -245,13 +240,9 @@ def main():
 
     
     doProgram(plcs)
-
-
-
-
     print("Program end")
 
-
+# Call main
 main()
 
 
