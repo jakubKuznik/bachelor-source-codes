@@ -2,12 +2,14 @@
 # File name: factory.py 
 # Authors: Jakub Kuzník <xkuzni04>
 # institution: VUT FIT 
-# Description: 
+# Description: Template for projetcs. 
 
 from pickle import TRUE
 from pyModbusTCP.client import ModbusClient
 import time
+import numpy
 
+SERVER_HOST_1 = "192.168.88.251"  # PLC2
 SERVER_HOST_2 = "192.168.88.252"  # PLC2
 SERVER_HOST_3 = "192.168.88.253"  # PLC3
 SERVER_HOST_4 = "192.168.88.254"  # PLC4
@@ -98,10 +100,8 @@ class Plc:
         self.applyDo()
         time.sleep(sleep)
     
-    def getFactoryIo(self):
-        return self.di0
-    
-    # TODO each input output can have function with same name as in factory io 
+    ##
+    # update all Digital inputs 
     def updateDi(self):
         all      = self.plc.read_coils(4, 4)
         self.di0 = all[0]
@@ -124,16 +124,15 @@ class Plc:
         return True
 
     ##
-    # Write digital outputs
+    # Write all digital outputs.
     def applyDo(self):
-        self.plc.write_single_coil(0, self.do0)  # Bases emitter
-        self.plc.write_single_coil(1, self.do1)  # Bases emitter
-        self.plc.write_single_coil(2, self.do2)  # Bases emitter
-        self.plc.write_single_coil(3, self.do3)  # Bases emitter
-
+        self.plc.write_single_coil(0, self.do0)  
+        self.plc.write_single_coil(1, self.do1)  
+        self.plc.write_single_coil(2, self.do2)  
+        self.plc.write_single_coil(3, self.do3)  
 
     ##
-    # set all the digital outputs to 0
+    # Set all digital outputs to 0.
     def clearDo(self):
         if self.plc.is_open == True:
             # [Sorter - right, Sorter - left, Right emitter, Left emitter]
@@ -153,16 +152,20 @@ class Plc:
         print("end tcp sessions")
         self.plc.close() # end tcp connection 
 
-
 ## 
 # call initPlc with SERVER_HOST_2-4 and SERVER_PORT 
 # @return array with all the plcs4
 #    array of plcs == [plc-252, plc-253, plc-254]
 def initAllPlcs():
     plcs = []
+    plcs.append(Plc(SERVER_HOST_1))
     plcs.append(Plc(SERVER_HOST_2))
     plcs.append(Plc(SERVER_HOST_3))
     plcs.append(Plc(SERVER_HOST_4))
+    plcs[0].writeMultipleDoNoClear([False, False, False, False], 0)
+    plcs[1].writeMultipleDoNoClear([False, False, False, False], 0)
+    plcs[2].writeMultipleDoNoClear([False, False, False, False], 0)
+    plcs[3].writeMultipleDoNoClear([False, False, False, False], 0)
     return plcs
 
 ##
@@ -173,83 +176,19 @@ def doProgram(plcs):
     PAUSE_LONG=1
     PAUSE_LONGEST=1.1
 
-    while True:
-        plcs[0].updateDi()
-        plcs[0].debugDi()
-
-        ## base block
-        #plcs[0].writeDo(3, PAUSE)
-        ## GRAB 
-        # plcs[0].writeDo(2, PAUSE)
-        
-        ## handle X 
-        #plcs[0].writeDo(1, PAUSE)
-        ## handle Z
-        #plcs[0].writeDo(0, PAUSE)
-        
-        ## Base move 
-        #plcs[2].writeDo(3, PAUSE)
-        ## Lid move
-        #plcs[2].writeDo(2, PAUSE)
-        break
-
     ## Progam not enabled 
     plcs[1].updateDi()
     while plcs[1].di3 == True:
-        print("tu")
         plcs[1].updateDi()
 
-
     # while factory io is running 
-    plcs[1].updateDi()
-    while plcs[1].di0 == True:
-
-        # Move roller till item reach gripper  
-        while True:
-            plcs[1].updateDi()
-            # both move 
-            if plcs[1].di1 == 0 and plcs[1].di2 == 0:
-                plcs[2].writeMultipleDo([False, False, True, True], PAUSE)
-            # lid move 
-            elif plcs[1].di1 == 1 and plcs[1].di2 == 0:
-                plcs[2].writeDo(3, PAUSE, True)
-            # base move 
-            elif plcs[1].di1 == 0 and plcs[1].di2 == 1:
-                plcs[2].writeDo(2, PAUSE, True)
-            else:
-                break
-
-        # Clamp lid and place 
-        plcs[2].writeMultipleDoNoClear([True, True, False, False], PAUSE_LONG)
-        plcs[2].writeMultipleDoNoClear([False, False, True, True], PAUSE)
-        plcs[2].writeMultipleDoNoClear([False, False, False, False], PAUSE)
-
-        plcs[0].writeDoNoClear(0, PAUSE_LONG, True)  # MOVE Z DOWN 
-        plcs[0].writeDoNoClear(2, PAUSE, True)       # GRAB 
-        plcs[0].writeDoNoClear(0, PAUSE_LONG, False) # MOVE Z UP 
-        plcs[0].writeDoNoClear(1, PAUSE_LONG, TRUE)  # MOVE X 
-        plcs[0].writeDoNoClear(0, PAUSE_LONG, True)  # MOVE Z DOWN 
-        plcs[0].writeDoNoClear(2, PAUSE, False)      # Release GRAB 
-        # MOVE gripper to the base position 
-        plcs[0].writeDoNoClear(0, PAUSE_LONG, False)  # MOVE Z UP
-        plcs[0].writeDoNoClear(1, PAUSE_LONG, False)  # MOVE X BACK
-        
-
-        plcs[0].writeDoNoClear(3, PAUSE_LONG, True) # MOVE BLOCKADE UP
-        plcs[2].writeMultipleDo([False, False, True, True], PAUSE_LONGEST) # move rollers
-        
-        plcs[0].writeDoNoClear(3, PAUSE_LONG, False) # MOVE BLOCKADE DOWN
-
-
-        
-        plcs[0].updateDi()
-        time.sleep(PAUSE)
-
+    plcs[2].updateDi()
+    while plcs[2].di0 == True:
+        plcs[2].updateDi()
 
 
 ## The main function.
 def main():
-
     
     # array of plcs == [plc-2, plc-3, plc-4]
     # array with instances of Plc class
@@ -262,13 +201,10 @@ def main():
             exit()
 
     doProgram(plcs)
-
-
-
-
     print("Program end")
 
 
+# call main 
 main()
 
 
