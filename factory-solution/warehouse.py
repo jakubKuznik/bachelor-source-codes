@@ -2,7 +2,7 @@
 # File name: factory.py 
 # Authors: Jakub Kuzník <xkuzni04>
 # institution: VUT FIT 
-# Description: 
+# Description: Solution for automatic warehouse. 
 
 from pickle import TRUE
 from pyModbusTCP.client import ModbusClient
@@ -131,9 +131,8 @@ class Plc:
         self.plc.write_single_coil(2, self.do2)  
         self.plc.write_single_coil(3, self.do3)  
 
-
     ##
-    # set all the digital outputs to 0
+    # Set all digital outputs to 0.
     def clearDo(self):
         if self.plc.is_open == True:
             # [Sorter - right, Sorter - left, Right emitter, Left emitter]
@@ -168,6 +167,8 @@ class Warehouse:
     def printMatrix(self):
         print(self.matrix)
 
+    # Will find free space in warehouse 
+    # @return matrix cordinates (0,0) or -1 if warehouse is full
     def findFree(self):
         for y in range(0,5):
             for x in range(0,8):
@@ -175,6 +176,7 @@ class Warehouse:
                     return y, x 
         return -1
 
+    ## Calculate index of first free warehouse cell
     # (0,0) == 110 110
     # (0,1)
     def calcIndex(self):
@@ -202,37 +204,38 @@ class Warehouse:
         return position
 
         
-        ## default   == 000 000
-        ## (1,1)     == 000 001   uplne vlevo dole 
-        ## (6,1)     == 000 111
-        ## (7,1)     == 001 000
-        ## (8,1)     == 001 001
-        ## (1,1)     == 001 010
-        ## (8,6)     == 110 101
-        ## (9,6)     == 110 110    uplne vlevo nahore 
-        #plcs[2].writeDoNoClear(0, PAUSE, False) # LSB
-        #plcs[2].writeDoNoClear(1, PAUSE, True)
-        #plcs[2].writeDoNoClear(2, PAUSE, True)
-        #plcs[2].writeDoNoClear(3, PAUSE, False)
-        #plcs[3].writeDoNoClear(0, PAUSE, True)
-        #plcs[3].writeDoNoClear(1, PAUSE, True) # MSB
+    ## default   == 000 000
+    ## (1,1)     == 000 001  left down 
+    ## (6,1)     == 000 111
+    ## (7,1)     == 001 000
+    ## (8,1)     == 001 001
+    ## (1,1)     == 001 010
+    ## (8,6)     == 110 101
+    ## (9,6)     == 110 110  right up 
+    # LSB plcs[2].writeDoNoClear(0, PAUSE, True) 
+    #     plcs[2].writeDoNoClear(1, PAUSE, True)
+    #     plcs[2].writeDoNoClear(2, PAUSE, True)
+    #     plcs[2].writeDoNoClear(3, PAUSE, True)
+    #     plcs[3].writeDoNoClear(0, PAUSE, True)
+    # MSB plcs[3].writeDoNoClear(1, PAUSE, True) 
     def moveToEmpty(self, plcs):
         index = self.calcIndex()
 
+        # Full warehouse 
         if index == -1:
             return -1
         
-        ## set to 1
+        ## Set cell to not empty  
         free = self.findFree()
-        print("free ", free)
         self.matrix.itemset(free, True)
 
         PAUSE = 0
+
         # set everything to 0
         plcs[2].writeMultipleDoNoClear([False, False, False, False], 0)
         plcs[3].writeMultipleDoNoClear([False, False, False, False], 0)
 
-
+        # bitMasks, convert index to digital outputs 
         if index & 32 == 32:
             plcs[3].writeDoNoClear(1, PAUSE, True) # MSB
         if index & 16 == 16:
@@ -247,6 +250,7 @@ class Warehouse:
             plcs[2].writeDoNoClear(0, PAUSE, True) # LSB 
         time.sleep(7)
 
+    ## Move lifter to base position 
     def zeroPosition(self, plcs):
         PAUSE = 0.05
         # set everything to 0
@@ -262,7 +266,6 @@ class Warehouse:
         # FORK LIFT DOWN 
         plcs[0].writeDoNoClear(1, PAUSE, False)  
         time.sleep(7)
-
 
 
 ## 
@@ -322,11 +325,8 @@ def doProgram(plcs):
 
         ware.zeroPosition(plcs)
 
-    
 
     plcs[1].updateDi()
-
-
 
 
 ## The main function.
@@ -343,13 +343,10 @@ def main():
             exit()
 
     doProgram(plcs)
-
-
-
-
     print("Program end")
 
 
+# call main 
 main()
 
 
