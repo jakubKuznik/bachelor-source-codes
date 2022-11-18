@@ -203,6 +203,68 @@ class Warehouse:
         position = wareSize - rowLenght*row - column
         return position
 
+        
+        ## default   == 000 000
+        ## (1,1)     == 000 001   uplne vlevo dole 
+        ## (6,1)     == 000 111
+        ## (7,1)     == 001 000
+        ## (8,1)     == 001 001
+        ## (1,1)     == 001 010
+        ## (8,6)     == 110 101
+        ## (9,6)     == 110 110    uplne vlevo nahore 
+        #plcs[2].writeDoNoClear(0, PAUSE, False) # LSB
+        #plcs[2].writeDoNoClear(1, PAUSE, True)
+        #plcs[2].writeDoNoClear(2, PAUSE, True)
+        #plcs[2].writeDoNoClear(3, PAUSE, False)
+        #plcs[3].writeDoNoClear(0, PAUSE, True)
+        #plcs[3].writeDoNoClear(1, PAUSE, True) # MSB
+    def moveToEmpty(self, plcs):
+        index = self.calcIndex()
+
+        if index == -1:
+            return -1
+        
+        ## set to 1
+        free = self.findFree()
+        print("free ", free)
+        self.matrix.itemset(free, True)
+
+        PAUSE = 0
+        # set everything to 0
+        plcs[2].writeMultipleDoNoClear([False, False, False, False], 0)
+        plcs[3].writeMultipleDoNoClear([False, False, False, False], 0)
+
+
+        if index & 32 == 32:
+            plcs[3].writeDoNoClear(1, PAUSE, True) # MSB
+        if index & 16 == 16:
+            plcs[3].writeDoNoClear(0, PAUSE, True)
+        if index & 8 == 8:
+            plcs[2].writeDoNoClear(3, PAUSE, True)
+        if index & 4 == 4:
+            plcs[2].writeDoNoClear(2, PAUSE, True)
+        if index & 2 == 2:
+            plcs[2].writeDoNoClear(1, PAUSE, True)
+        if index & 1 == 1:
+            plcs[2].writeDoNoClear(0, PAUSE, True) # LSB 
+        time.sleep(7)
+
+    def zeroPosition(self, plcs):
+        PAUSE = 0.05
+        # set everything to 0
+        # DEFAULT pos is on 55
+        plcs[2].writeDoNoClear(0, PAUSE, True)
+        plcs[2].writeDoNoClear(1, PAUSE, True)
+        plcs[2].writeDoNoClear(2, PAUSE, False)
+        plcs[2].writeDoNoClear(3, PAUSE, True)
+        plcs[3].writeDoNoClear(0, PAUSE, True)
+        plcs[3].writeDoNoClear(1, PAUSE, True)
+        
+        
+        # FORK LIFT DOWN 
+        plcs[0].writeDoNoClear(1, PAUSE, False)  
+        time.sleep(7)
+
 
 
 ## 
@@ -229,17 +291,6 @@ def doProgram(plcs):
     PAUSE_LONG=1
     PAUSE_LONGEST=1.1
 
-
-    while True:
-        #plcs[0].writeDo(0, PAUSE, True) DI7
-        #plcs[0].writeDo(1, PAUSE, True) DI6
-        #plcs[0].writeDo(2, PAUSE, True) DI5
-        #plcs[0].writeDo(3, PAUSE, True) DI4
-        #plcs[0].updateDi()
-        # DO0 = IDO0, DO3 = IDO3
-        #plcs[0].debugDi()
-        break
-
     ## Progam not enabled 
     plcs[1].updateDi()
     while plcs[1].di3 == True:
@@ -264,72 +315,24 @@ def doProgram(plcs):
         plcs[0].writeDoNoClear(0, PAUSE_LONG, True)   # FORK INPUT
         plcs[0].writeDoNoClear(1, PAUSE_LONG, True)   # FORK LIFT UP
         plcs[0].writeDoNoClear(0, PAUSE_LONG, False)  # FORK INPUT BACK 
-        plcs[0].writeDoNoClear(1, PAUSE_LONG, False)  # FORK LIFT DOWN
 
-        ware.findFree()
-        print(ware.matrix)
-        ware.matrix((9,6), True)
-        print(ware.matrix)
-        # 0 == IDI11  - LSB
-        # 1 == IDI10
-        # 2 == IDI9
-        # 3 == IDI8
-        # 4 == IDI3
-        # 5 == IDI2   - MSB  
+        ware.moveToEmpty(plcs)
+            
+        plcs[0].writeDoNoClear(2, PAUSE_LONG, True)   # FORK OUTPUT 
+        plcs[0].writeDoNoClear(1, PAUSE_LONG, False)  # FORK LIFT DOWN 
+        plcs[0].writeDoNoClear(2, PAUSE_LONG, False)  # FORK OUTPUT BACK 
 
-        # 0    0  0  0  0  0
-        # 32  16  8  4  2  1
-        
-        # default   == 000 000
-        # (1,1)     == 000 001   uplne vlevo dole 
-        # (6,1)     == 000 111
-        # (7,1)     == 001 000
-        # (8,1)     == 001 001
-        # (1,1)     == 001 010
-        # (8,6)     == 110 101
-        # (9,6)     == 110 110    uplne vlevo nahore 
-        plcs[2].writeDoNoClear(0, PAUSE, False) # LSB
-        plcs[2].writeDoNoClear(1, PAUSE, True)
-        plcs[2].writeDoNoClear(2, PAUSE, True)
-        plcs[2].writeDoNoClear(3, PAUSE, False)
-        plcs[3].writeDoNoClear(0, PAUSE, True)
-        plcs[3].writeDoNoClear(1, PAUSE, True) # MSB
+        ware.zeroPosition(plcs)
 
-
-
-
+    
 
     plcs[1].updateDi()
 
 
 
 
-
 ## The main function.
 def main():
-    
-    ware = Warehouse()
-    print(ware.findFree())
-    print(ware.calcIndex())
-    print(ware.matrix)
-    ware.matrix.itemset((0,0), True)
-    ware.matrix.itemset((0,1), True)
-    ware.matrix.itemset((0,2), True)
-    ware.matrix.itemset((0,3), True)
-    ware.matrix.itemset((0,4), True)
-    ware.matrix.itemset((0,5), True)
-    ware.matrix.itemset((0,6), True)
-    ware.matrix.itemset((0,7), True)
-    ware.matrix.itemset((0,8), True)
-    print(ware.findFree())
-
-    print("hihi")
-    for i in ware.findFree():
-        print(i)
-    print("hihi")
-    print(ware.calcIndex())
-    print(ware.matrix)
-    exit()
     
     # array of plcs == [plc-2, plc-3, plc-4]
     # array with instances of Plc class
