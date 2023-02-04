@@ -170,8 +170,8 @@ class Warehouse:
     # Will find free space in warehouse 
     # @return matrix cordinates (0,0) or -1 if warehouse is full
     def findFree(self):
-        for y in range(0,5):
-            for x in range(0,8):
+        for y in range(0,6):
+            for x in range(0,9):
                 if self.matrix[y,x] == False:
                     return y, x 
         return -1
@@ -181,7 +181,7 @@ class Warehouse:
     # (0,1)
     def calcIndex(self):
         # if warehouse is full 
-        if self.findFree == -1:
+        if self.findFree() == -1:
             return -1
 
         position = 0
@@ -192,6 +192,7 @@ class Warehouse:
         a = 0       # temp variable 
         row = 0     
         column = 0
+        print("free: " + str(self.findFree()))
         # transform matrix cordinates to two number 
         for i in self.findFree():
             if a == 0:
@@ -219,7 +220,9 @@ class Warehouse:
     #     plcs[3].writeDoNoClear(0, PAUSE, True)
     # MSB plcs[3].writeDoNoClear(1, PAUSE, True) 
     def moveToEmpty(self, plcs):
+        
         index = self.calcIndex()
+        print("index: " + str(index))
 
         # Full warehouse 
         if index == -1:
@@ -287,6 +290,7 @@ def initAllPlcs():
 ##
 # do the program (infinite loop) 
 def doProgram(plcs):
+    PAUSE_SHORTEST=0.1
     PAUSE_SHORT=0.2
     PAUSE=0.5
     PAUSE_LONG=1
@@ -310,13 +314,14 @@ def doProgram(plcs):
         plcs[2].debugDi()
         while plcs[2].di1 == False:
             #do0 First entry roller do1 second entry roller 
-            plcs[1].writeMultipleDo([True, True, True, True], PAUSE) 
+            plcs[1].writeMultipleDo([True, True, True, True], PAUSE_SHORTEST) 
             plcs[2].updateDi()
         
         plcs[0].writeDoNoClear(0, PAUSE_LONG, True)   # FORK INPUT
         plcs[0].writeDoNoClear(1, PAUSE_LONG, True)   # FORK LIFT UP
         plcs[0].writeDoNoClear(0, PAUSE_LONG, False)  # FORK INPUT BACK 
 
+        ware.printMatrix() 
         ware.moveToEmpty(plcs)
             
         plcs[0].writeDoNoClear(2, PAUSE_LONG, True)   # FORK OUTPUT 
