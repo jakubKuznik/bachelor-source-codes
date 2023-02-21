@@ -76,7 +76,7 @@ def build_packet(src_ip, dst_ip, src_mac, dst_mac, transaction_id, lenght, unit_
   ip_header = IP(src=src_ip, dst=dst_ip)
 
   # 14 is size of tcp payload 
-  tcp_header = TCP(dport=SERVER_PORT, sport=params[0] , flags="PA", ack=(params[2] + 14 ), seq=params[1])
+  tcp_header = TCP(dport=SERVER_PORT, sport=params[0] , flags="PA", ack=(params[2] + 104), seq=params[1])
 
   # Create Ethernet header
   eth_header = Ether(src=src_mac, dst=dst_mac ,type=0x0800 )

