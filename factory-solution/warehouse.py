@@ -17,6 +17,9 @@ SERVER_HOST_4 = "192.168.88.254"  # PLC4
 # port, same for all PLCs
 SERVER_PORT = 502
 
+# TODO i should handle tcp RST flags 
+
+
 ##
 # Class Plc represents one "UniPi Neuron S103" PLC
 #  user should get all the information about plc from here 

@@ -12,6 +12,8 @@ SERVER_HOST_2 = "192.168.88.252"  # PLC2
 SERVER_HOST_3 = "192.168.88.253"  # PLC3
 SERVER_HOST_4 = "192.168.88.254"  # PLC4
 
+# TODO i should handle tcp RST flags 
+
 # port, same for all PLCs
 SERVER_PORT = 502
 
