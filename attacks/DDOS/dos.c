@@ -10,5 +10,18 @@
 
 
 int main(int argc, char *argv[]) {
-    printf("hi");
+
+    modbusPacket mPacket = buildModbusPacket();
+    
+    return 0;
+}
+
+/**
+ * @brief Function create modbus packet.
+ * it uses constants from dos.h to fill eth/ip/tcp headers.
+ * 
+ * @return modbusPacket  
+ */
+modbusPacket buildModbusPacket(){
+    printf("hi") ;
 }
