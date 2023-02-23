@@ -56,21 +56,26 @@ struct modbusPacket {
   struct ether_header ethHeader;
   struct iphdr ipHeader; 
   struct tcphdr tcpHeader;  
-  modbusHeader nfheader;
-  modbusPayload nfpayload;
+  modbusHeader modbusH;
+  modbusPayload modbusP;
 };
 typedef struct modbusPacket modbusPacket;
-
-/**
- * @brief Create a Modbus Header object
- */
-void createModbusHeader(struct modbusHeader mHeader);
 
 /**
  * @brief Function create modbus packet.
  * it uses constants from dos.h to fill eth/ip/tcp headers.
  */
-void buildModbusPacket(modbusPacket mPacket);
+void buildModbusPacket(modbusPacket * mPacket);
+
+/**
+ * @brief Create a Modbus Payload. 
+ */
+void creteModbusPayload(modbusPayload * mPayload);
+
+/**
+ * @brief Create a Modbus Header object
+ */
+void createModbusHeader(modbusHeader * mHeader);
 
 /**
  * @brief It builds tcp header using constants from dos.h 

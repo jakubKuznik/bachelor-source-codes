@@ -14,33 +14,72 @@ int main(void){
   modbusPacket mPacket;
   
   srand(time(NULL));   // rand nums init.
-  buildModbusPacket(mPacket);
+  buildModbusPacket(&mPacket);
+
+  // todo maybe modifyTcpParams()
+
+  int raw_socket = socket(AF_INET, SOCK_RAW, IPPROTO_RAW);
+  if (raw_socket < 0) {
+    exit(1);
+  }
+
+  // todo free modbusPayload->data
   return 0;
+
+
+
 }
 
 /**
  * @brief Function create modbus packet.
  * it uses constants from dos.h to fill eth/ip/tcp headers.
  */
-void buildModbusPacket(modbusPacket mPacket){
+void buildModbusPacket(modbusPacket * mPacket){
 
   // create eth/ip/tcp headers and store inside mPacket struct. 
-  createEthHeader(&mPacket.ethHeader);
-  createIpHeader(&mPacket.ipHeader);
-  createTcpHeader(&mPacket.tcpHeader);
+  createEthHeader(&mPacket->ethHeader);
+  createIpHeader(&mPacket->ipHeader);
+  createTcpHeader(&mPacket->tcpHeader);
 
   // TODO maybe we need to calculate ip checksum 
-
-
+  
+  // create Modbus part of packet 
+  // good to realize that modbusH->lenght tell us lenght in bytes
+  //   from unitId to end of data 
+  createModbusHeader(&mPacket->modbusH);
+   
 
   printf("hi") ;
 }
 
 /**
- * @brief Create a Modbus Header object
+ * @brief Create a Modbus Payload. 
  */
-void createModbusHeader(struct modbusHeader mHeader){
-  exit(1);
+void creteModbusPayload(modbusPayload * mPayload){
+  mPayload->functionCode = 15; // Write Multiple Coils
+  mPayload->data = malloc(6);
+
+  // reference number 0 
+  mPayload->data[0] = 0;
+  mPayload->data[1] = 0;
+  // bit count 4
+  mPayload->data[2] = 0;
+  mPayload->data[3] = 4; 
+  // byte count 1
+  mPayload->data[4] = 1;
+  // data 0
+  mPayload->data[5] = 0; 
+
+}
+
+/**
+ * @brief Create a Modbus Header.
+ */
+void createModbusHeader(modbusHeader * mHeader){
+  mHeader->transactionId = rand();
+  mHeader->protocolId = htons(0);
+  mHeader->lenght = htons(8);
+  mHeader->unitId = 1;
 }
 
 /**
