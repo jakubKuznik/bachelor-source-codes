@@ -8,11 +8,12 @@
 #include "dos.h"
 
 
-
 int main(void){
-
+  
+  // Modbus TCP packet 
   modbusPacket mPacket;
   
+  srand(time(NULL));   // rand nums init.
   buildModbusPacket(mPacket);
   return 0;
 }
@@ -26,14 +27,39 @@ void buildModbusPacket(modbusPacket mPacket){
   // create eth/ip/tcp headers and store inside mPacket struct. 
   createEthHeader(&mPacket.ethHeader);
   createIpHeader(&mPacket.ipHeader);
+  createTcpHeader(&mPacket.tcpHeader);
+
+  // TODO maybe we need to calculate ip checksum 
+
 
 
   printf("hi") ;
 }
 
+/**
+ * @brief Create a Modbus Header object
+ */
+void createModbusHeader(struct modbusHeader mHeader){
+  exit(1);
+}
 
 /**
- * @brief it builds ipv4 header using. constants from dos.h 
+ * @brief It builds tcp header using constants from dos.h 
+ */
+void createTcpHeader(struct tcphdr * tcpHeader){
+  tcpHeader->source = htons(TCP_SRC_PORT);
+  tcpHeader->dest = htons(TCP_DST_PORT);
+  tcpHeader->seq = htonl((uint32_t)rand());
+  tcpHeader->ack_seq = htonl((uint32_t)rand());
+  tcpHeader->doff = 5;
+  tcpHeader->syn = 1;
+  tcpHeader->window = htons(1024);
+  tcpHeader->check = 0;
+  tcpHeader->urg_ptr = 0;
+}
+
+/**
+ * @brief it builds ipv4 header using constants from dos.h 
  */
 void createIpHeader(struct iphdr * ipHeader){
   ipHeader->ihl = 5;

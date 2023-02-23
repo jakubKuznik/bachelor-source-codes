@@ -32,6 +32,8 @@
 #define IP_DST "192.168.88.252"
 #define MAC_SRC "1c:69:7a:08:86:1a"
 #define MAC_DST "b8:27:eb:1e:08:59"
+#define TCP_DST_PORT 502
+#define TCP_SRC_PORT 44444 
 
 #define IP_HEADER_TOTAL_LENGHT 54
 
@@ -60,10 +62,20 @@ struct modbusPacket {
 typedef struct modbusPacket modbusPacket;
 
 /**
+ * @brief Create a Modbus Header object
+ */
+void createModbusHeader(struct modbusHeader mHeader);
+
+/**
  * @brief Function create modbus packet.
  * it uses constants from dos.h to fill eth/ip/tcp headers.
  */
 void buildModbusPacket(modbusPacket mPacket);
+
+/**
+ * @brief It builds tcp header using constants from dos.h 
+ */
+void createTcpHeader(struct tcphdr * tcpHeader);
 
 /**
  * @brief it builds ipv4 header using. constants from dos.h 
