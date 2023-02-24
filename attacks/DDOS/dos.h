@@ -50,6 +50,7 @@
 #define TCP_HEADER_SIZE 20
 #define MODBUS_HEADER_SIZE 7
 #define MODBUS_PAYLOAD_SIZE 7
+#define MODBUS_DATA_SIZE 6
 
 
 struct modbusHeader { 

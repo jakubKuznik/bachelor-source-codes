@@ -121,8 +121,9 @@ void packetToCharArray(char out[PACKET_SIZE], modbusPacket *mPacket)
   pt += MODBUS_HEADER_SIZE;
 
   // Modbus payload
-  memcpy(pt, &mPacket->modbusH, MODBUS_PAYLOAD_SIZE);
-  pt += MODBUS_PAYLOAD_SIZE;
+  memcpy(pt, &mPacket->modbusP, 1); // function code 
+  pt += 1;
+  memcpy(pt, &mPacket->modbusP.data[0], MODBUS_DATA_SIZE);
 }
 
 /**
@@ -153,6 +154,10 @@ void createModbusPayload(modbusPayload *mPayload)
 {
   mPayload->functionCode = 15; // Write Multiple Coils
   mPayload->data = malloc(6);
+  if (mPayload->data == NULL){
+    fprintf(stderr, "Malloc failed\n");
+    exit(1);
+  }
 
   // reference number 0
   mPayload->data[0] = 0;
@@ -202,7 +207,7 @@ void createIpHeader(struct iphdr *ipHeader)
   ipHeader->version = 4;
   ipHeader->tos = 0;
   // for different packets there should be change
-  ipHeader->tot_len = IP_HEADER_TOTAL_LENGHT;
+  ipHeader->tot_len = htons(IP_HEADER_TOTAL_LENGHT);
   ipHeader->id = htons(12345);
   ipHeader->frag_off = 0;
   ipHeader->ttl = 64;
