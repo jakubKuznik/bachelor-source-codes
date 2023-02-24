@@ -28,6 +28,9 @@
 #include <netdb.h>
 #include <pcap/pcap.h>
 #include <net/if.h>
+#include <linux/if_packet.h>
+#include <sys/socket.h>
+
 
 #define IP_SRC "192.168.88.250"
 #define IP_DST "192.168.88.252"
