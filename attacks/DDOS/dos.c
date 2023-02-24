@@ -13,21 +13,55 @@ int main(void){
   // Modbus TCP packet 
   modbusPacket mPacket;
   
+  // output interface
+  struct ifreq interface;
+  
   srand(time(NULL));   // rand nums init.
   buildModbusPacket(&mPacket);
 
   // todo maybe modifyTcpParams()
 
-  int raw_socket = socket(AF_INET, SOCK_RAW, IPPROTO_RAW);
-  if (raw_socket < 0) {
-    exit(1);
-  }
+  int rawSocket = socket(AF_INET, SOCK_RAW, IPPROTO_RAW);
+  if (rawSocket < 0) 
+    goto error1;
+
+  // bind raw socket to specific interface 
+  if (setsockopt(rawSocket, SOL_SOCKET, SO_BINDTODEVICE, 
+        OUT_INTERFACE, sizeof(OUT_INTERFACE)) != 0)
+    goto error2;
+  
+  if ((sendPacket(rawSocket, mPacket, &interface)) != 0)
+    goto error3;
 
   // todo free modbusPayload->data
+  close(rawSocket);
   return 0;
 
 
 
+error1:
+  fprintf(stderr, "Error can't create raw socket\n");
+  return 1; 
+
+error2:
+  fprintf(stderr, "Error Can't bind socket to interface\n");
+  return 2; 
+
+error3:
+  fprintf(stderr, "Error \n");
+  return 2; 
+}
+
+/**
+ * @brief Function will send mPacket to sock 
+ * @param sock output socket 
+ * @return false if error sending 
+ */
+int sendPacket(int sock, modbusPacket mPacket, 
+                struct ifreq * interface ){
+   
+  printf("kulo");
+  return 0;
 }
 
 /**
@@ -47,9 +81,6 @@ void buildModbusPacket(modbusPacket * mPacket){
   // good to realize that modbusH->lenght tell us lenght in bytes
   //   from unitId to end of data 
   createModbusHeader(&mPacket->modbusH);
-   
-
-  printf("hi") ;
 }
 
 /**
@@ -69,7 +100,6 @@ void creteModbusPayload(modbusPayload * mPayload){
   mPayload->data[4] = 1;
   // data 0
   mPayload->data[5] = 0; 
-
 }
 
 /**
@@ -129,10 +159,8 @@ void createEthHeader(struct ether_header * ethHeader){
   for (int i = 0; i < 6; i++){
     ethHeader->ether_dhost[i] = srcMac[i]; 
     ethHeader->ether_shost[i] = dstMac[i];
-
   }
   ethHeader->ether_type = htons(ETHERTYPE_IP); 
-
 }
 
 /**

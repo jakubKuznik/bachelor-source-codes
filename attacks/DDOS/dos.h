@@ -27,6 +27,7 @@
 #include <netinet/tcp.h>
 #include <netdb.h>
 #include <pcap/pcap.h>
+#include <net/if.h>
 
 #define IP_SRC "192.168.88.250"
 #define IP_DST "192.168.88.252"
@@ -35,6 +36,7 @@
 #define TCP_DST_PORT 502
 #define TCP_SRC_PORT 44444 
 
+#define OUT_INTERFACE "eno2"
 #define IP_HEADER_TOTAL_LENGHT 54
 
 struct modbusHeader { 
@@ -51,7 +53,6 @@ struct modbusPayload {
 };
 typedef struct modbusPayload modbusPayload;
 
-
 struct modbusPacket {
   struct ether_header ethHeader;
   struct iphdr ipHeader; 
@@ -60,6 +61,15 @@ struct modbusPacket {
   modbusPayload modbusP;
 };
 typedef struct modbusPacket modbusPacket;
+
+
+/**
+ * @brief Function will send mPacket to sock 
+ * @param sock output socket 
+ * @return false if error sending 
+ */
+int sendPacket(int sock, modbusPacket mPacket, 
+                struct ifreq * interface );
 
 /**
  * @brief Function create modbus packet.
