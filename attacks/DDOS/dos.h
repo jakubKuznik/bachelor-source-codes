@@ -39,6 +39,15 @@
 #define OUT_INTERFACE "eno2"
 #define IP_HEADER_TOTAL_LENGHT 54
 
+
+#define PACKET_SIZE 68
+#define ETH_HEADER_SIZE 14
+#define IP_HEADER_SIZE 20
+#define TCP_HEADER_SIZE 20
+#define MODBUS_HEADER_SIZE 7
+#define MODBUS_PAYLOAD_SIZE 7
+
+
 struct modbusHeader { 
   uint16_t transactionId;
   uint16_t protocolId;
@@ -70,6 +79,10 @@ typedef struct modbusPacket modbusPacket;
  */
 int sendPacket(int sock, modbusPacket mPacket, 
                 struct ifreq * interface );
+/**
+ * @brief build packet byte by byte to char array. 
+ */
+void packetToCharArray(char out[PACKET_SIZE], modbusPacket * mPacket);
 
 /**
  * @brief Function create modbus packet.
@@ -80,7 +93,7 @@ void buildModbusPacket(modbusPacket * mPacket);
 /**
  * @brief Create a Modbus Payload. 
  */
-void creteModbusPayload(modbusPayload * mPayload);
+void createModbusPayload(modbusPayload * mPayload);
 
 /**
  * @brief Create a Modbus Header object

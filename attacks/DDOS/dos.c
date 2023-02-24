@@ -17,9 +17,7 @@ int main(void){
   struct ifreq interface;
   
   srand(time(NULL));   // rand nums init.
-  buildModbusPacket(&mPacket);
 
-  // todo maybe modifyTcpParams()
 
   int rawSocket = socket(AF_INET, SOCK_RAW, IPPROTO_RAW);
   if (rawSocket < 0) 
@@ -30,6 +28,13 @@ int main(void){
         OUT_INTERFACE, sizeof(OUT_INTERFACE)) != 0)
     goto error2;
   
+  // builds modbus packet to modbusPacket struct 
+  buildModbusPacket(&mPacket);
+
+
+  // todo maybe modifyTcpParams()
+
+
   if ((sendPacket(rawSocket, mPacket, &interface)) != 0)
     goto error3;
 
@@ -65,6 +70,34 @@ int sendPacket(int sock, modbusPacket mPacket,
 }
 
 /**
+ * @brief build packet byte by byte to char array. 
+ */
+void packetToCharArray(char out[PACKET_SIZE], modbusPacket * mPacket){
+    
+  char * pt = &out[0]; // pointer to first element of array 
+
+  // eth header    
+  memcpy(pt, &mPacket->ethHeader, ETH_HEADER_SIZE);
+  pt += ETH_HEADER_SIZE;
+
+  // ip header 
+  memcpy(pt, &mPacket->ipHeader, IP_HEADER_SIZE);
+  pt += IP_HEADER_SIZE;
+
+  // tcp header
+  memcpy(pt, &mPacket->tcpHeader, TCP_HEADER_SIZE);
+  pt += TCP_HEADER_SIZE;
+
+  // Modbus TCP header
+  memcpy(pt, &mPacket->modbusH, MODBUS_HEADER_SIZE);
+  pt += MODBUS_HEADER_SIZE;
+
+  // Modbus payload
+  memcpy(pt, &mPacket->modbusH, MODBUS_PAYLOAD_SIZE);
+  pt += MODBUS_PAYLOAD_SIZE;
+}
+
+/**
  * @brief Function create modbus packet.
  * it uses constants from dos.h to fill eth/ip/tcp headers.
  */
@@ -81,12 +114,13 @@ void buildModbusPacket(modbusPacket * mPacket){
   // good to realize that modbusH->lenght tell us lenght in bytes
   //   from unitId to end of data 
   createModbusHeader(&mPacket->modbusH);
+  createModbusPayload(&mPacket->modbusP);
 }
 
 /**
  * @brief Create a Modbus Payload. 
  */
-void creteModbusPayload(modbusPayload * mPayload){
+void createModbusPayload(modbusPayload * mPayload){
   mPayload->functionCode = 15; // Write Multiple Coils
   mPayload->data = malloc(6);
 
