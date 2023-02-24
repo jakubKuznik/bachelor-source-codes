@@ -15,6 +15,7 @@
 #include <sys/time.h>
 #include <time.h>
 #include <signal.h>
+#include <unistd.h>
 
 // network libraries
 #include <arpa/inet.h>
@@ -86,6 +87,12 @@ int sendPacket(int sock, modbusPacket mPacket,
  * @brief build packet byte by byte to char array. 
  */
 void packetToCharArray(char out[PACKET_SIZE], modbusPacket * mPacket);
+
+/**
+ * @brief Set the Raw Socket object
+ * @return socket or exit program  
+ */
+int createRawSocket();
 
 /**
  * @brief Function create modbus packet.

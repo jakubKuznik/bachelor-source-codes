@@ -14,16 +14,67 @@ int main(void)
   modbusPacket mPacket;
   char packetRawForm[PACKET_SIZE];
 
-  // output interface
-  struct ifreq interface;
-
   srand(time(NULL)); // rand nums init.
 
-  int rawSocket = socket(AF_PACKET, SOCK_RAW, htons(ETH_P_ALL));
-  if (rawSocket < 0)
-    goto error1;
+  // this function will create raw socket.
+  // if there is an error it will exit() program 
+  int rawSocket = createRawSocket();
 
-// get index of network interface named "eno2"
+  // builds modbus packet to modbusPacket struct
+  // todo maybe modifyTcpParams()
+  buildModbusPacket(&mPacket);
+  packetToCharArray(packetRawForm, &mPacket);
+
+  // debug packet raw data 
+  for (int i = 0; i < PACKET_SIZE; i++){
+    printf(" %02hhX", packetRawForm[i]);
+  }
+  printf("\n");
+
+  // send the data over the raw socket
+  int ret = send(rawSocket, packetRawForm, PACKET_SIZE, 0);
+  if (ret < 0){
+    goto error3;
+  }
+
+  close(rawSocket);
+  free(mPacket.modbusP.data);
+  return 0;
+
+
+error2:
+  fprintf(stderr, "Error Can't bind socket to interface\n");
+  return 2;
+
+error3:
+  fprintf(stderr, "ERROR send() %d Sending data failed \n", ret);
+  return 2;
+}
+
+/**
+ * @brief Function will send mPacket to sock
+ * @param sock output socket
+ * @return false if error sending
+ */
+int sendPacket(int sock, modbusPacket mPacket,
+               struct ifreq *interface)
+{
+  return 0;
+}
+
+/**
+ * @brief Set the Raw Socket object
+ * @return socket or exit program  
+ */
+int createRawSocket(){
+
+  int rawSocket = socket(AF_PACKET, SOCK_RAW, htons(ETH_P_ALL));
+  if (rawSocket < 0){
+    fprintf(stderr, "Error can't create raw socket\n");
+    exit(1);
+  }
+
+  // get index of network interface named "eno2"
   int ifIndex = if_nametoindex(OUT_INTERFACE);
   if (ifIndex == 0) {
     fprintf(stderr, "Can't get network interface index");
@@ -41,76 +92,8 @@ int main(void)
     exit(1);
   }
 
-  
+  return rawSocket;
 
-
-  // bind raw socket to specific interface
-
-//  if (setsockopt(rawSocket, SOL_SOCKET, SO_BINDTODEVICE,
-//                 OUT_INTERFACE, sizeof(OUT_INTERFACE)) != 0)
-//    goto error2;
-
-
-  // set the MSG_DONTROUTE flag
-  // sent packets dirrctly to interface without doing routing
-  // int enable = 1;
-  // if (setsockopt(rawSocket, IPPROTO_IP, IP_MTU_DISCOVER, &enable, sizeof(enable)) < 0) {
-  // fprintf(stderr, "Erorr fail to set MSG_DONTROUTE flag\n");
-  // return 1;
-  //}
-
-  // builds modbus packet to modbusPacket struct
-  // todo maybe modifyTcpParams()
-  buildModbusPacket(&mPacket);
-  packetToCharArray(packetRawForm, &mPacket);
-
-  for (int i = 0; i < PACKET_SIZE; i++)
-  {
-    printf("%02hhX ", packetRawForm[i]);
-  }
-
-  // send the data over the raw socket
-  int ret = send(rawSocket, packetRawForm, PACKET_SIZE, 0);
-  if (ret < 0)
-  {
-    fprintf(stderr, "ERROR send() %d Sending data failed \n", ret);
-    while (1)
-    {
-    }
-
-    return 1;
-  }
-
-  // if ((sendPacket(rawSocket, mPacket, &interface)) != 0)
-  // goto error3;
-
-  // todo free modbusPayload->data
-  close(rawSocket);
-  return 0;
-
-error1:
-  fprintf(stderr, "Error can't create raw socket\n");
-  return 1;
-
-error2:
-  fprintf(stderr, "Error Can't bind socket to interface\n");
-  return 2;
-
-error3:
-  fprintf(stderr, "Error \n");
-  return 2;
-}
-
-/**
- * @brief Function will send mPacket to sock
- * @param sock output socket
- * @return false if error sending
- */
-int sendPacket(int sock, modbusPacket mPacket,
-               struct ifreq *interface)
-{
-
-  return 0;
 }
 
 /**
