@@ -12,6 +12,7 @@ int main(void){
   
   // Modbus TCP packet 
   modbusPacket mPacket;
+  char packetRawForm[PACKET_SIZE];
   
   // output interface
   struct ifreq interface;
@@ -29,11 +30,13 @@ int main(void){
     goto error2;
   
   // builds modbus packet to modbusPacket struct 
-  buildModbusPacket(&mPacket);
-
-
   // todo maybe modifyTcpParams()
+  buildModbusPacket(&mPacket);
+  packetToCharArray(packetRawForm, &mPacket);
 
+  for (int i = 0; i < PACKET_SIZE; i++){
+    printf("%02hhX ",packetRawForm[i]);
+  }
 
   if ((sendPacket(rawSocket, mPacket, &interface)) != 0)
     goto error3;
@@ -65,7 +68,6 @@ error3:
 int sendPacket(int sock, modbusPacket mPacket, 
                 struct ifreq * interface ){
    
-  printf("kulo");
   return 0;
 }
 
@@ -140,7 +142,7 @@ void createModbusPayload(modbusPayload * mPayload){
  * @brief Create a Modbus Header.
  */
 void createModbusHeader(modbusHeader * mHeader){
-  mHeader->transactionId = rand();
+  mHeader->transactionId = htons(rand()); 
   mHeader->protocolId = htons(0);
   mHeader->lenght = htons(8);
   mHeader->unitId = 1;
@@ -191,8 +193,8 @@ void createEthHeader(struct ether_header * ethHeader){
   
   // copy MAC to header byte by byte 
   for (int i = 0; i < 6; i++){
-    ethHeader->ether_dhost[i] = srcMac[i]; 
-    ethHeader->ether_shost[i] = dstMac[i];
+    ethHeader->ether_dhost[i] = dstMac[i]; 
+    ethHeader->ether_shost[i] = srcMac[i];
   }
   ethHeader->ether_type = htons(ETHERTYPE_IP); 
 }

@@ -34,13 +34,13 @@
 #define MAC_SRC "1c:69:7a:08:86:1a"
 #define MAC_DST "b8:27:eb:1e:08:59"
 #define TCP_DST_PORT 502
-#define TCP_SRC_PORT 44444 
+#define TCP_SRC_PORT 50840 
 
 #define OUT_INTERFACE "eno2"
 #define IP_HEADER_TOTAL_LENGHT 54
 
 
-#define PACKET_SIZE 68
+#define PACKET_SIZE 68 // sum of sizes bellow 
 #define ETH_HEADER_SIZE 14
 #define IP_HEADER_SIZE 20
 #define TCP_HEADER_SIZE 20
