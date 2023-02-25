@@ -19,5 +19,4 @@ plc2.open()
 while True:
   plc2.read_coils(4,4)
   time.sleep(2)
-  print("kulo")
 
