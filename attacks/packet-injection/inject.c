@@ -26,7 +26,22 @@ int main(void){
   sniffInterface = openInt(error_message, OUT_INTERFACE);
 
   mPacket = findModbusPacket();
+  packetToCharArray(packetRawForm, mPacket);
 
+  int packet_size = ETH_HEADER_SIZE + IP_HEADER_SIZE
+  + TCP_HEADER_SIZE + MODBUS_HEADER_SIZE + ntohs(mPacket->modbusH.lenght) -1;
+
+  // debug packet raw data 
+  for (int i = 0; i < packet_size; i++){
+    printf(" %02hhX", packetRawForm[i]);
+  }
+  printf("\n");
+
+  // send the data over the raw socket
+  send(rawSocket, packetRawForm, 1, 0);
+
+  free(mPacket->modbusP.data);
+  free(mPacket);
   // close sniffing interface 
   pcap_close(sniffInterface);
   return 0;

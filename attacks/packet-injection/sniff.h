@@ -38,6 +38,11 @@
 #define SNIFF_TIMEOUT 10
 #define MAX_FRAME_SIZE 1518
 
+#define ETHERTYP_IP 0x0800
+#define ETH_HEAD 14
+// this can differ but in our example all packets are having 20B ip header 
+#define IP_HEAD 20 
+#define TCP 6
 
 /**
  * @brief Sniff until you find tcp stream between:
@@ -47,6 +52,18 @@
  */
 modbusPacket * findModbusPacket();
 
+/**
+ * @brief Create a modbus packet from *frame 
+ *   // ALLOCATE ON HEAP 
+ * @return modbusPacket* 
+ */
+modbusPacket * createPacket(const u_char *frame);
+
+/**
+ * @brief find packet with: IP_SRC, IP_DST, TCP_DST_PORT 
+ * @return true if packet found 
+ */
+bool findSpecificPakcet(const u_char *frame);
 
 /**
  * @brief Open interface and set *err as erro message 

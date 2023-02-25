@@ -43,7 +43,7 @@
 #define OUT_INTERFACE "eno2"
 #define IP_HEADER_TOTAL_LENGHT 54
 
-#define PACKET_SIZE 68 // sum of sizes bellow 
+#define PACKET_SIZE 128 // sum of sizes bellow 
 #define ETH_HEADER_SIZE 14
 #define IP_HEADER_SIZE 20
 #define TCP_HEADER_SIZE 20
@@ -78,7 +78,7 @@ typedef struct modbusPacket modbusPacket;
 /**
  * @brief build packet byte by byte to char array. 
  */
-void packetToCharArray(char out[PACKET_SIZE], modbusPacket * mPacket);
+void packetToCharArray(char out[PACKET_SIZE], modbusPacket *mPacket);
 
 /**
  * @brief Function create modbus packet.

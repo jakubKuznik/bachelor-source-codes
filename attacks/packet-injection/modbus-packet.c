@@ -32,8 +32,12 @@ void packetToCharArray(char out[PACKET_SIZE], modbusPacket *mPacket)
   // Modbus payload
   memcpy(pt, &mPacket->modbusP, 1); // function code 
   pt += 1;
-  memcpy(pt, &mPacket->modbusP.data[0], MODBUS_DATA_SIZE);
+  memcpy(pt, &mPacket->modbusP.data[0], mPacket->modbusH.lenght -2);
+
+  
+
 }
+
 
 /**
  * @brief Function create modbus packet.
