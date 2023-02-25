@@ -1,7 +1,7 @@
 // Solution for BACHELOR’S THESIS: atack generation on industrial modbus network 
-// File:        modbus-packet.c 
+// File:        modbus-packet.h 
 // Author:      Jakub Kuzník, FIT
-// File provides function that creates modbus packet byte by byte.
+// Header file that contains all the necessary structs for modbus packet 
 
 #ifndef MODBUS_H
 #define MODBUS_H
