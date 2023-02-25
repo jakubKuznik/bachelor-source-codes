@@ -1,14 +1,10 @@
 // Solution for BACHELOR’S THESIS: atack generation on industrial modbus network 
-// File:        inject.h
+// File:        modbus-packet.h 
 // Author:      Jakub Kuzník, FIT
-//  
+// TODO  
 
-#ifndef INJECT_H 
-#define INJECT_H
-
-#include "modbus-packet.h"
-#include "sniff.h"
-
+#ifndef SNIFF_H  
+#define SNIFF_H
 
 // normal libraries 
 #include <stdio.h>
@@ -36,15 +32,32 @@
 #include <linux/if_packet.h>
 #include <sys/socket.h>
 
-#define OUT_INTERFACE "eno2"
+// for pcap_open_live
+#define SNIFF_TIMEOUT 10
+#define MAX_FRAME_SIZE 1518
 
 
 /**
- * @brief Set the Raw Socket object
- * @return socket or exit program  
+ * @brief Sniff until you find tcp stream between:
+ *   IP_SRC <---> IP_DST
+ * on port: 
+ *   TCP_DST_PORT
  */
-int createRawSocket();
+int findTcpStream();
 
 
+/**
+ * @brief Open interface and set *err as erro message 
+ * if open fail exit(2)
+ * if interface does not support ethernet frame exit(2) 
+ */
+pcap_t *openInt(char *err, char *name);
 
-#endif 
+/**
+ * @brief Free resource after signal SIGINT  
+ */
+void freeResources(int sig_num);
+
+
+#endif
+

@@ -5,45 +5,33 @@
 
 #include "inject.h"
 
-int main(void)
-{
 
+int main(void){
   // Modbus TCP packet
   modbusPacket mPacket;
   char packetRawForm[PACKET_SIZE];
+  // raw sockete for sending packets
+  int rawSocket;  
+  pcap_t * sniffInterface = NULL;
+  char error_message[PCAP_ERRBUF_SIZE];
 
   srand(time(NULL)); // rand nums init.
 
   // this function will create raw socket.
   // if there is an error it will exit() program 
-  int rawSocket = createRawSocket();
+  rawSocket = createRawSocket();
 
-  // builds modbus packet to modbusPacket struct
-  // todo maybe modifyTcpParams()
-  buildModbusPacket(&mPacket);
-  packetToCharArray(packetRawForm, &mPacket);
+  // open interface for sniffing // exit program if error 
+  // global variable in sniff.c
+  sniffInterface = openInt(error_message, OUT_INTERFACE);
 
-  // debug packet raw data 
-  for (int i = 0; i < PACKET_SIZE; i++){
-    printf(" %02hhX", packetRawForm[i]);
-  }
-  printf("\n");
 
-  // send the data over the raw socket
-  int ret;
-  while(1){
-    ret = send(rawSocket, packetRawForm, PACKET_SIZE, 0);
-    if (ret < 0){
-      goto error3;
-    }
-  }
-
-  close(rawSocket);
-  free(mPacket.modbusP.data);
+  // close sniffing interface 
+  pcap_close(sniffInterface);
   return 0;
 
 error3:
-  fprintf(stderr, "ERROR send() %d Sending data failed \n", ret);
+  //fprintf(stderr, "ERROR send() %d Sending data failed \n", ret);
   return 2;
 }
 
