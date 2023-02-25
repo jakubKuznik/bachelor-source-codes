@@ -16,7 +16,8 @@ pcap_t * sniffInterface;
  * on port: 
  *   TCP_DST_PORT
  */
-int findTcpStream(pcap_t *sniffInterface){
+modbusPacket * findModbusPacket(){
+  
   return 0;
 }
 
@@ -27,23 +28,23 @@ int findTcpStream(pcap_t *sniffInterface){
  */
 pcap_t *openInt(char *err, char *name){
     
-    pcap_t *sniffInt; // interface where packet will be sniffed 
+  pcap_t *sniffInt; // interface where packet will be sniffed 
 
-    // set promiscuous mode - all network data packets can be accessed
-    // --- and viewed by all network adapters operating in this mode.
-    sniffInt = pcap_open_live(name, MAX_FRAME_SIZE, true, SNIFF_TIMEOUT, err);
-    if (sniffInt == NULL)
-        goto error_interface;
+  // set promiscuous mode - all network data packets can be accessed
+  // --- and viewed by all network adapters operating in this mode.
+  sniffInt = pcap_open_live(name, MAX_FRAME_SIZE, true, SNIFF_TIMEOUT, err);
+  if (sniffInt == NULL)
+    goto error_interface;
     
-    if(pcap_datalink(sniffInt) != DLT_EN10MB)
-        goto error_ether_frame;
+  if(pcap_datalink(sniffInt) != DLT_EN10MB)
+    goto error_ether_frame;
 
-    // SIGINT signal handler
-    sigemptyset(&sigIntHandler.sa_mask);
-    sigIntHandler.sa_handler = freeResources;
-    sigIntHandler.sa_flags = 0;
+  // SIGINT signal handler
+  sigemptyset(&sigIntHandler.sa_mask);
+  sigIntHandler.sa_handler = freeResources;
+  sigIntHandler.sa_flags = 0;
     
-    return sniffInt;
+  return sniffInt;
 
 error_interface:
     fprintf(stderr, "Cannot open interface\n");
@@ -59,8 +60,8 @@ error_ether_frame:
  */
 void freeResources(int sig_num){
   
-    // close socket etc.
-    fprintf(stderr, "[signal %d] -> Process killed\n", sig_num);
-    pcap_close(sniffInterface);
-    exit(1); 
+  // close socket etc.
+  fprintf(stderr, "[signal %d] -> Process killed\n", sig_num);
+  pcap_close(sniffInterface);
+  exit(1); 
 }

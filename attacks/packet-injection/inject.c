@@ -8,7 +8,7 @@
 
 int main(void){
   // Modbus TCP packet
-  modbusPacket mPacket;
+  modbusPacket * mPacket;
   char packetRawForm[PACKET_SIZE];
   // raw sockete for sending packets
   int rawSocket;  
@@ -25,6 +25,7 @@ int main(void){
   // global variable in sniff.c
   sniffInterface = openInt(error_message, OUT_INTERFACE);
 
+  mPacket = findModbusPacket();
 
   // close sniffing interface 
   pcap_close(sniffInterface);

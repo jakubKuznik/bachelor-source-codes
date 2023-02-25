@@ -6,6 +6,8 @@
 #ifndef SNIFF_H  
 #define SNIFF_H
 
+#include "modbus-packet.h"
+
 // normal libraries 
 #include <stdio.h>
 #include <stdlib.h>
@@ -43,7 +45,7 @@
  * on port: 
  *   TCP_DST_PORT
  */
-int findTcpStream();
+modbusPacket * findModbusPacket();
 
 
 /**
