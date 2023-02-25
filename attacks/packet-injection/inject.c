@@ -110,8 +110,10 @@ void generateMaliciousPacket(modbusPacket *mPacket){
   mPacket->modbusP.data[1] = rand() % 4;
 
   // activate data
-  mPacket->modbusP.data[2] = 0xff;
-
+  if (rand() % 2 == 0)
+    mPacket->modbusP.data[2] = 0xff;
+  else
+    mPacket->modbusP.data[2] = 0x00;
 }
 
 /**
