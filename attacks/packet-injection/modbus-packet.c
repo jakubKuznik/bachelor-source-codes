@@ -34,8 +34,6 @@ void packetToCharArray(char out[PACKET_SIZE], modbusPacket *mPacket)
   pt += 1;
   memcpy(pt, &mPacket->modbusP.data[0], ntohs(mPacket->modbusH.lenght) -2);
 
-  
-
 }
 
 

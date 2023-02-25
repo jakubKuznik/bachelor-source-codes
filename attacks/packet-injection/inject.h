@@ -40,6 +40,12 @@
 
 
 /**
+ * @brief Create malicious packet from existing. 
+ */
+void generateMaliciousPacket(modbusPacket *mPacket);
+  
+
+/**
  * @brief Set the Raw Socket object
  * @return socket or exit program  
  */

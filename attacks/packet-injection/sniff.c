@@ -23,11 +23,17 @@ modbusPacket * findModbusPacket(){
   struct ip           *ipHeader; 
   struct tcphdr       *tcpHeader; 
 
-  // find packet with IP_SRC, IP_DST, TCP_DST_PORT 
+  // this here prevents to sniif our own malicious packet
+  for (int i = 0; i < 10; i++){
+    pcap_next(sniffInterface, &pacHeader); // skip one 
+  } 
+
+  // find packet with IP_SRC, IP_DST, TCP_DST_PORT
   while ((frame = pcap_next(sniffInterface, &pacHeader)) != NULL){
     if (findSpecificPakcet(frame) == true)
         break;
   }
+
   return createPacket(frame);
 }
 
@@ -70,7 +76,7 @@ modbusPacket * createPacket(const u_char *frame){
 
     // data 
     int dataSize = ntohs(mPacket->modbusH.lenght) -2;
-    mPacket->modbusP.data = malloc(dataSize);
+    mPacket->modbusP.data = malloc(120);
     memcpy(&mPacket->modbusP.data[0], pt, dataSize);
     return mPacket;
 }
@@ -104,6 +110,10 @@ bool findSpecificPakcet(const u_char *frame){
     if (tcpHeader->th_dport != htons(TCP_DST_PORT))
       return false;
     
+    // This is a retransmitted packet
+    if ((tcpHeader->th_flags & TH_ACK) && !(tcpHeader->th_flags & TH_PUSH)) 
+        return false;
+
     return true;
 }
 

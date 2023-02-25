@@ -62,7 +62,7 @@ typedef struct modbusHeader modbusHeader;
 
 struct modbusPayload {
   uint8_t functionCode; 
-  char * data;
+  unsigned char * data;
 };
 typedef struct modbusPayload modbusPayload;
 
