@@ -35,6 +35,7 @@
 #include <net/if.h>
 #include <linux/if_packet.h>
 #include <sys/socket.h>
+#include <zlib.h>
 
 #define OUT_INTERFACE "eno2"
 

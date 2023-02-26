@@ -40,6 +40,15 @@ int main(void){
     // prepare packet to send
     packetRawForm = packetToCharArray(packet_size, mPacket);
 
+    // count the crc 
+    uint32_t crc = crc32(0L, Z_NULL, 0); // initialize CRC value
+    crc = crc32(crc, (const Bytef *)packetRawForm, packet_size);
+    printf("CRC: %u\n",crc);
+  
+    // Append the CRC to the packet data
+    memcpy(packetRawForm + packet_size, &crc, sizeof(crc));
+    packet_size += sizeof(crc);
+
     printf("len: %d\n",packet_size);
     //// debug packet raw data 
     for (int i = 0; i < packet_size; i++){
@@ -89,6 +98,7 @@ void generateMaliciousPacket(modbusPacket *mPacket){
 
   mPacket->ipHeader.id = random();
   countIpChecksum(mPacket);
+  countTcpChecksum(mPacket);
   //mPacket->ipHeader.check = 0;
 
   mPacket->tcpHeader.seq = htonl(ntohl(mPacket->tcpHeader.seq) + 48);
