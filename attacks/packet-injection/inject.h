@@ -43,6 +43,21 @@
  * @brief Create malicious packet from existing. 
  */
 void generateMaliciousPacket(modbusPacket *mPacket);
+
+/**
+ * @brief count ip checksum for given packet 
+ */
+void countIpChecksum(modbusPacket * mPacket);
+
+/**
+ * @brief count tcp checksum for given packet 
+ */
+void countTcpChecksum(modbusPacket * mPacket);
+
+/**
+ * @brief count CRC checksum for given frame 
+ */
+uint32_t countCRC(modbusPacket * mPacket);
   
 
 /**

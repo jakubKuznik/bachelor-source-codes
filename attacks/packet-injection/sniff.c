@@ -19,10 +19,7 @@ pcap_t * sniffInterface;
 modbusPacket * findModbusPacket(){
   const u_char        *frame;      // packet
   struct pcap_pkthdr  pacHeader;   // packet header
-  struct ether_header *ethHeader;  // ethernet  
-  struct ip           *ipHeader; 
-  struct tcphdr       *tcpHeader; 
-
+  
   // this here prevents to sniif our own malicious packet
   for (int i = 0; i < 10; i++){
     pcap_next(sniffInterface, &pacHeader); // skip one 
@@ -31,7 +28,7 @@ modbusPacket * findModbusPacket(){
   // find packet with IP_SRC, IP_DST, TCP_DST_PORT
   while ((frame = pcap_next(sniffInterface, &pacHeader)) != NULL){
     if (findSpecificPakcet(frame) == true)
-        break;
+      break;
   }
 
   return createPacket(frame);
@@ -43,7 +40,7 @@ modbusPacket * findModbusPacket(){
  * @return modbusPacket* 
  */
 modbusPacket * createPacket(const u_char *frame){
-    modbusPacket * mPacket = malloc(128);
+    modbusPacket * mPacket = malloc(120);
     if (mPacket == NULL){
         fprintf(stderr, "Malloc error\n");
         exit(1);
@@ -52,7 +49,6 @@ modbusPacket * createPacket(const u_char *frame){
     char *pt = &frame[0]; // pointer to the first element of an array 
 
     // can be optimalized here 
-
     // eth header
     memcpy(&mPacket->ethHeader, pt, ETH_HEADER_SIZE);
     pt += ETH_HEADER_SIZE;
@@ -74,9 +70,22 @@ modbusPacket * createPacket(const u_char *frame){
     memcpy(&mPacket->modbusP.functionCode, pt, 1); 
     pt += 1;
 
-    // data 
+    // TODO CAREFULL TCP CAN BE LONGER THAN 20B
+    
+    // count how big is packet.
     int dataSize = ntohs(mPacket->modbusH.lenght) -2;
-    mPacket->modbusP.data = malloc(120);
+    if (dataSize <= 0){
+      fprintf(stderr, "Modbus parse error\n");
+      exit(1);
+    }
+    
+    // alocation
+    mPacket->modbusP.data = malloc(dataSize);
+    if (mPacket->modbusP.data == NULL){
+      fprintf(stderr, "Malloc error\n");
+      exit(1);
+    }
+    
     memcpy(&mPacket->modbusP.data[0], pt, dataSize);
     return mPacket;
 }

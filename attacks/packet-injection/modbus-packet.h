@@ -78,7 +78,7 @@ typedef struct modbusPacket modbusPacket;
 /**
  * @brief build packet byte by byte to char array. 
  */
-void packetToCharArray(char out[PACKET_SIZE], modbusPacket *mPacket);
+char * packetToCharArray(int size, modbusPacket *mPacket);
 
 /**
  * @brief Function create modbus packet.

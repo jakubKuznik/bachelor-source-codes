@@ -8,8 +8,13 @@
 /**
  * @brief build packet byte by byte to char array.
  */
-void packetToCharArray(char out[PACKET_SIZE], modbusPacket *mPacket)
-{
+char * packetToCharArray(int size, modbusPacket *mPacket){
+
+  char * out = malloc(size);
+  if (out == NULL){
+    fprintf(stderr, "Erorr malloc failed\n");
+    exit(1);
+  }
 
   char *pt = &out[0]; // pointer to first element of array
 
@@ -29,11 +34,13 @@ void packetToCharArray(char out[PACKET_SIZE], modbusPacket *mPacket)
   memcpy(pt, &mPacket->modbusH, MODBUS_HEADER_SIZE);
   pt += MODBUS_HEADER_SIZE;
 
+
   // Modbus payload
   memcpy(pt, &mPacket->modbusP, 1); // function code 
   pt += 1;
   memcpy(pt, &mPacket->modbusP.data[0], ntohs(mPacket->modbusH.lenght) -2);
 
+  return out;
 }
 
 
