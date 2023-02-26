@@ -128,7 +128,75 @@ void countIpChecksum(modbusPacket * mPacket){
  * @brief count tcp checksum for given packet 
  */
 void countTcpChecksum(modbusPacket * mPacket){
-  return;
+  uint32_t result = 0;
+
+  // ip pseudo header fields that are used to count tcp checksum
+  pseudoHeader ph = {
+    .srcAddr  = mPacket->ipHeader.saddr,
+    .dstAddr  = mPacket->ipHeader.daddr,
+    .zero     = 0,
+    .protocol = mPacket->ipHeader.protocol,
+    .tcpLen   = htons(TCP_HEADER_SIZE 
+                + ntohs(mPacket->ipHeader.tot_len) 
+                - IP_HEADER_SIZE)
+  };
+  
+  mPacket->tcpHeader.check = 0;  
+  
+  uint16_t tcpLength = ntohs(mPacket->ipHeader.tot_len) - IP_HEADER_SIZE;
+  uint16_t payloadSize = tcpLength - TCP_HEADER_SIZE;
+
+  
+  // pseudo Header Tcp Header payload 
+  unsigned char * phHP = malloc(PH_SIZE + TCP_HEADER_SIZE + IP_HEADER_SIZE);
+  if (phHP == NULL){
+    fprintf(stderr, "Malloc failed");
+    exit(1);
+  }
+
+  // copy ph, tcpHeader and tcpPayload to phHP 
+  char *pt = &phHP[0]; // pointer to first element of array
+
+  // pseudo header  
+  memcpy(pt, &ph, PH_SIZE);
+  pt += PH_SIZE;
+  
+  // tcp header  
+  memcpy(pt, &mPacket->tcpHeader, TCP_HEADER_SIZE);
+  pt += TCP_HEADER_SIZE;
+  
+  // tcp payload   
+  // Modbus TCP header
+  memcpy(pt, &mPacket->modbusH, MODBUS_HEADER_SIZE);
+  pt += MODBUS_HEADER_SIZE;
+  // Modbus payload
+  memcpy(pt, &mPacket->modbusP, 1); // function code 
+  pt += 1;
+  memcpy(pt, &mPacket->modbusP.data[0], ntohs(mPacket->modbusH.lenght) -2);
+  
+  // inicialization of 16 bit value to tcpHeader begining   
+  const uint16_t *buf = (const uint16_t *) &phHP;
+  
+  // iterate throught ip header (+16bit one iteration)
+  for (int i = 0; i < tcpLength/2; i++) { 
+    result += buf[i];
+  }
+    
+  // Add carry bits to sum
+  // while there are some positive bits in upper 16bits 
+  // sum the upper part to the lower part 
+  while (result >> 16) {
+    result = (result & 0xFFFF) + (result >> 16);
+  }
+
+  // complement == negate all bits 
+  mPacket->tcpHeader.check= (uint16_t) ~result;
+
+
+  // Set the TCP checksum field in the packet header
+  //mPacket->tcpHeader.check = tcpChecksum;
+
+  free(phHP);
 }
 
 /**

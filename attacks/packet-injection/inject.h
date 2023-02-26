@@ -38,6 +38,16 @@
 
 #define OUT_INTERFACE "eno2"
 
+// pseudo header for tcp checksum 
+typedef struct {
+    struct in_addr srcAddr; // source IP address
+    struct in_addr dstAddr; // destination IP address
+    uint8_t zero;           // reserved
+    uint8_t protocol;       // protocol (6 for TCP)
+    uint16_t tcpLen;        // TCP header length + data length
+} pseudoHeader;
+
+#define PH_SIZE 12
 
 /**
  * @brief Create malicious packet from existing. 
