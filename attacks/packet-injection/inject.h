@@ -39,15 +39,6 @@
 
 #define OUT_INTERFACE "eno2"
 
-// pseudo header for tcp checksum 
-typedef struct {
-    struct in_addr srcAddr; // source IP address
-    struct in_addr dstAddr; // destination IP address
-    uint8_t zero;           // reserved
-    uint8_t protocol;       // protocol (6 for TCP)
-    uint16_t tcpLen;        // TCP header length + data length
-} pseudoHeader;
-
 #define PH_SIZE 12
 
 /**
@@ -66,10 +57,9 @@ void countIpChecksum(modbusPacket * mPacket);
 void countTcpChecksum(modbusPacket * mPacket);
 
 /**
- * @brief count CRC checksum for given frame 
+ * @brief concatenate pseudo header tcp header and payload 
  */
-uint32_t countCRC(modbusPacket * mPacket);
-  
+char * prepareDataForChecksum(modbusPacket * mPacket);
 
 /**
  * @brief Set the Raw Socket object
