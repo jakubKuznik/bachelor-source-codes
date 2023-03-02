@@ -85,7 +85,7 @@ void generateMaliciousPacket(modbusPacket *mPacket)
   // seq = seq + 48 == 4 write_single_coil packets
 
   // transaction id has to be unique
-  mPacket->modbusH.transactionId = ntohs(50000);
+  mPacket->modbusH.transactionId = ntohs(random());
 
   // ref num 3
   mPacket->modbusP.data[0] = 0;
