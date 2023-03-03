@@ -21,7 +21,8 @@ modbusPacket * findModbusPacket(){
   struct pcap_pkthdr  pacHeader;   // packet header
   
   // this here prevents to sniif our own malicious packet
-  for (int i = 0; i < 20; i++){
+  // so it does prevent infinite loop 
+  for (int i = 0; i < 5; i++){
     pcap_next(sniffInterface, &pacHeader); // skip one 
   } 
 

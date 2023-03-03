@@ -9,7 +9,6 @@
 #include "modbus-packet.h"
 #include "sniff.h"
 
-
 // normal libraries 
 #include <stdio.h>
 #include <stdlib.h>
@@ -66,6 +65,13 @@ char * prepareDataForChecksum(modbusPacket * mPacket);
  * @return socket or exit program  
  */
 int createRawSocket();
+
+/**
+ * @brief Parse arguments. It count how many micro sec should we 
+ *   wait between each packet 
+ */
+uint64_t parseArgs(int argc, char **argv);
+
 
 
 
