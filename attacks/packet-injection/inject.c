@@ -4,7 +4,7 @@
 // Program sniffs tcp comunication between master and slave. It injects packets
 //     into this communication. Communication we are looking for is defined in 
 //     modbus-packet.h
-// Execution: ./inject 10 .... means 10 packets/s 
+// Execution: ./inject 10 .... means 10 packets/min 
 //            ./inject 0  .... means full speed 
 
 #include "inject.h"
@@ -167,6 +167,10 @@ char *prepareDataForChecksum(modbusPacket *mPacket){
 
   int tcpLen = ntohs(mPacket->ipHeader.tot_len) - IP_HEADER_SIZE;
   char *data = malloc(PH_SIZE + tcpLen);
+  if (data == NULL){
+    fprintf(stderr, "Malloc failed \n");
+    exit(1);
+  }
   char *pt = &data[0]; // pointer to first element of array
 
   // pseudo header
@@ -240,7 +244,7 @@ uint64_t parseArgs(int argc, char **argv){
     //            ./inject 0  .... means full speed 
     fprintf(stderr, "Bad execution.\n");
     fprintf(stderr, "try:\n");
-    fprintf(stderr, " ./inject 10 ... means 10 packets/s.\n");
+    fprintf(stderr, " ./inject 10 ... means 10 packets/min.\n");
     fprintf(stderr, " ./inject 0  ... means full speed.\n");
     exit(1);
   }
