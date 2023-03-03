@@ -1,12 +1,13 @@
 // Solution for BACHELOR’S THESIS: atack generation on industrial modbus network 
-// File:        dos.h
+// File:        replay.h
 // Author:      Jakub Kuzník, FIT
 //  
 
-#ifndef DOS_H 
-#define DOS_H 
+#ifndef REPLAY_H 
+#define REPLAY_H 
 
-#include "manual-modbus-packet.h"
+#include "modbus-packet.h"
+#include "sniff.h"
 
 // normal libraries 
 #include <stdio.h>
@@ -33,13 +34,45 @@
 #include <net/if.h>
 #include <linux/if_packet.h>
 #include <sys/socket.h>
+#include <zlib.h>
 
 #define OUT_INTERFACE "eno2"
+
+#define PH_SIZE 12
+
+/**
+ * @brief Create malicious packet from existing. 
+ */
+void generateMaliciousPacket(modbusPacket *mPacket);
+
+/**
+ * @brief count ip checksum for given packet 
+ */
+void countIpChecksum(modbusPacket * mPacket);
+
+/**
+ * @brief count tcp checksum for given packet 
+ */
+void countTcpChecksum(modbusPacket * mPacket);
+
+/**
+ * @brief concatenate pseudo header tcp header and payload 
+ */
+char * prepareDataForChecksum(modbusPacket * mPacket);
 
 /**
  * @brief Set the Raw Socket object
  * @return socket or exit program  
  */
 int createRawSocket();
+
+/**
+ * @brief Parse arguments. It count how many micro sec should we 
+ *   wait between each packet 
+ */
+uint64_t parseArgs(int argc, char **argv);
+
+
+
 
 #endif 

@@ -1,13 +1,12 @@
 // Solution for BACHELOR’S THESIS: atack generation on industrial modbus network
-// File:        inject.c
+// File:        replay.c
 // Author:      Jakub Kuzník, FIT
-// Program sniffs tcp comunication between master and slave. It injects packets
-//     into this communication. Communication we are looking for is defined in 
-//     modbus-packet.h
+// Program sniffs tcp comunication between master and slave. It
+//   replays packets into the communication just with different seq,ack nums. 
 // Execution: ./inject 10 .... means 10 packets/min 
 //            ./inject 0  .... means full speed 
 
-#include "inject.h"
+#include "replay.h"
 
 int main(int argc, char **argv){
 
@@ -32,6 +31,7 @@ int main(int argc, char **argv){
   sniffInterface = openInt(error_message, OUT_INTERFACE);
 
   // find packet and parse all its info
+  // TODO can send every nth (slow it down)
   while (1){
     mPacket = findModbusPacket();
 
