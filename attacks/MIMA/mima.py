@@ -54,11 +54,11 @@ def handle_packet(packet):
     
 
     # modify each nth packet that is going to slave 
-   # if packet[Ether].dst == slave_mac: 
-   #     packet_num += 1
-   #     if packet_num % MODIFY_NTH_PACKET == 0:
-   #         packet = change_packet(packet)
-   #         malicious=True
+    if packet[Ether].dst == slave_mac: 
+        packet_num += 1
+        if packet_num % MODIFY_NTH_PACKET == 0:
+            packet = change_packet(packet)
+            malicious=True
 
 
     # send packet
