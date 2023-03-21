@@ -7,7 +7,7 @@ Program can be easily modified for whatever MIMA attack.
 ## 1. Arp cache poisoning 
 `sudo arp-spoofing.sh`
 ## 2. Attack 
-`sudo python3 ./mima.py`
+`sudo python3 mima.py`
 
 ## Debug on attacked devices
 # linux:
