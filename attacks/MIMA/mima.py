@@ -11,13 +11,11 @@ from scapy.all import *
 # Define the network interfaces to listen on and forward packets to
 listen_interface = "eno2"
 
-# modify each 10nth packet 
+# modify each nth packet 
 MODIFY_NTH_PACKET = 2
 
-#
 real_master_ip = '192.168.88.250' # 1C:69:7A:08:86:1A
 slave_ip       = '192.168.88.252' # b8:27:eb:1e:08:59
-MIM_ip         = '192.168.88.199' # 8c:04:ba:08:73:03
 
 real_master_mac = '1c:69:7a:08:86:1a' # 1C:69:7A:08:86:1A
 slave_mac       = 'b8:27:eb:1e:08:59' # b8:27:eb:1e:08:59

