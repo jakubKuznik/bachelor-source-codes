@@ -3,12 +3,14 @@
 # Authors: Jakub Kuzník <xkuzni04>
 # institution: VUT FIT 
 # Description: . 
+# Execution:
+#      python3 anomaly_detection.py -csva a.csv -cvsn // only get basic statistic 
 
 import numpy
 import argparse
 import csv_procesor
 import sys
-
+import statistic
 
 ## Class that contains methods for argparsing and argument validation 
 class Arg_parse:
@@ -82,14 +84,19 @@ def main():
     args = Arg_parse().args
     dprint(args)
 
-    csv = csv_procesor.Csv_procesor()
+    csv = csv_procesor.Csv_procesor(csvn=args.csvn, csva=args.csva)
+
+    # if there is no statistic method just print basic statistic info 
+    if (args.m1 == False) and (args.m2 == False) and (args.m3 == False):
+        print()
+
+    stats = statistic.Statistic(csv)
+
+    print(csv.csva)
 
     ## if m1 
     # csv.m1()
-
     dprint("Program end")
-
-
 
 
 if __name__ == '__main__':

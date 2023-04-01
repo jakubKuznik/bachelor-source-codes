@@ -37,8 +37,7 @@
 # 192.168.88.252,192.168.88.250,NIL,NIL,---AP---,---AP---,---AP---,
 # 22,57708,NIL,897,0,0,NIL,NIL,NIL,NIL,NIL,NIL,NIL,NIL
 
-import csv
-import anomaly_detection
+import pandas as pd 
 
 class Csv_procesor:
     
@@ -47,8 +46,38 @@ class Csv_procesor:
     #  @csvn list with normal comunication csv files 
     #  @csva list with malicious comunication csv files 
     def __init__(self, csvn, csva):
-        self.csvn
-        self.csva
-        self.var = "foo"
-        anomaly_detection.dprint("kulo")
-    # todo get csv time 
+        # [(DataFrame, duration), (DataFrame, duration) ... (DataFrame, duration)]
+        self.csva = []
+        self.csvn = []
+
+        ## parse multiple csva files 
+        for csv in csva:
+            self.csva.append(self.parse_csv(csv))
+        
+        ## parse multiple csva files 
+        for csv in csvn:
+            self.csvn.append(self.parse_csv(csv))
+        
+        print("DEBUG: CSV parsed succesfully")
+
+    ## 
+    # @csv list with csv files 
+    # @return [csv, time-begin, time-end] 
+    def parse_csv(self, csv_file):
+        begin_time = ""
+        end_time = ""
+
+        # convert csv to pandas dataFrame 
+        df = pd.read_csv(csv_file, delimiter=',')
+
+        # delete spaces in row names 
+        df = df.rename(columns=lambda x: x.replace(' ', ''))
+
+        end_time     = pd.to_datetime(df.iloc[-1]["END_SEC"])
+        begin_time   = pd.to_datetime(df.iloc[0]["START_SEC"])
+
+        duration     = end_time - begin_time
+
+        return (df,duration)
+
+                 
