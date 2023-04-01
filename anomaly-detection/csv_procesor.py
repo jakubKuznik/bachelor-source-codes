@@ -46,18 +46,27 @@ class Csv_procesor:
     #  @csvn list with normal comunication csv files 
     #  @csva list with malicious comunication csv files 
     def __init__(self, csvn, csva):
-        # [(DataFrame, duration), (DataFrame, duration) ... (DataFrame, duration)]
-        self.csva = []
-        self.csvn = []
-
+        
+        csv_a = []
         ## parse multiple csva files 
         for csv in csva:
-            self.csva.append(self.parse_csv(csv))
+            csv_a.append(self.parse_csv(csv))
         
+        csv_n = []
         ## parse multiple csva files 
         for csv in csvn:
-            self.csvn.append(self.parse_csv(csv))
+            csv_n.append(self.parse_csv(csv))
+
+        ## PUBLIC ATTRIBUTES         
+        ## merge csvs into one
+        # csva pandas dataframe 
+        self.csva_df = self.mergeDataFrame(csv_a)
+        self.csvn_df = self.mergeDataFrame(csv_n)
         
+        ## merge time duration 
+        self.csva_duration = self.mergeDuration(csv_a)
+        self.csvn_duration = self.mergeDuration(csv_n)
+
         print("DEBUG: CSV parsed succesfully")
 
     ## 
@@ -79,5 +88,23 @@ class Csv_procesor:
         duration     = end_time - begin_time
 
         return (df,duration)
+    
+    # merge dataframes to one 
+    def mergeDataFrame(self, csvc):
+        df = pd.DataFrame({})
+        for csv in csvc:
+            # csv[0] == csv file
+            # csv[1] == duration
+            df = pd.concat([df, csv[0]], ignore_index=True)
+        return df
 
+
+    # merge csv files duration to one  
+    def mergeDuration(self, csvc):
+        total_time = ""
+        for csv in csvc:
+            # csv[0] == csv file
+            # csv[1] == duration
+            total_time += csv[1]
+        return total_time
                  

@@ -13,8 +13,31 @@ class Statistic:
   # Count basic statistic for csv. It relates everything to 5 min interval 
   # @csvc is in format: 
   #  [(DataFrame, duration), (DataFrame, duration) ... (DataFrame, duration)]
-  def __init__(self, csvc):
-    constant_to_five = csv_proc.csva
+  def __init__(self, df, duration):
+    print("tu")
+
+
+    # assuming your DataFrame is called "df"
+    # Celkový počet přenesených paketů (PACKETS sum)
+    # packets_sum = df['PACKETS'].sum()
+
+    # # Celkový počet přenesených bajtů  (BYTES sum)
+    # bytes_sum = df['BYTES'].sum()
+
+    # # Průměrná velikost paketů
+    # avg_packet_size = bytes_sum / packets_sum
+
+    # # Celkový počet přenesených paketů Modbus TCP (if L4_SRC or L4 dst is 502)
+    # modbus_packets_sum = df[(df['L4_PORT_SRC'] == 502) | (df['L4_PORT_DST'] == 502)]['PACKETS'].sum()
+
+    # # Celkový počet přenesených bajtů Modbus TCP  (if L4_SRC or L4 dst is 502)
+    # modbus_bytes_sum = df[(df['L4_PORT_SRC'] == 502) | (df['L4_PORT_DST'] == 502)]['BYTES'].sum()
+
+    # # Průměrná velikost paketu Modbus TCP
+    # if modbus_packets_sum > 0:
+      # avg_modbus_packet_size = modbus_bytes_sum / modbus_packets_sum
+    # else:
+      # avg_modbus_packet_size = 0
 
     # self.csv_processor = csv_processor    
     # self.total_packet_transimted = csv_processor
