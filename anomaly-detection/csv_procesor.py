@@ -38,9 +38,17 @@
 # 22,57708,NIL,897,0,0,NIL,NIL,NIL,NIL,NIL,NIL,NIL,NIL
 
 import csv
-
+import anomaly_detection
 
 class Csv_procesor:
-    def __init__(self):
+    
+    # Constructor - It parse all csvn files to one self.csvn
+    #               It parse all csva files to one self.csva
+    #  @csvn list with normal comunication csv files 
+    #  @csva list with malicious comunication csv files 
+    def __init__(self, csvn, csva):
+        self.csvn
+        self.csva
         self.var = "foo"
-        print("foo")
+        anomaly_detection.dprint("kulo")
+    # todo get csv time 
