@@ -24,8 +24,12 @@ class Statistic:
     print(self.duration_sec)
 
     ## todo 
-    # al1 - al10 master: 200
-    # wh1 - wh10 master: 250  
+    # al1 - al10 master:        250 
+    # wh1 - wh10 master:        250  
+    # inject10 - inject 100:    250
+    # dos:                      250
+    # tcp: attacker 199 master  250  othres are filtered 
+    # replay                    250  (icmp on 199 ignore)
 
     self.packets_sum = df['PACKETS'].sum()
     self.bytes_sum = df['BYTES'].sum()
@@ -47,10 +51,24 @@ class Statistic:
     self.packets_250_252 = df[(df['L3_IPV4_SRC'] == '192.168.88.250') & (df['L3_IPV4_DST'] == '192.168.88.252')]['PACKETS'].sum()
     self.packets_250_253 = df[(df['L3_IPV4_SRC'] == '192.168.88.250') & (df['L3_IPV4_DST'] == '192.168.88.253')]['PACKETS'].sum()
     self.packets_250_254 = df[(df['L3_IPV4_SRC'] == '192.168.88.250') & (df['L3_IPV4_DST'] == '192.168.88.254')]['PACKETS'].sum()
+    self.modbus_write_250_251 = df[(df['L3_IPV4_SRC'] == '192.168.88.250') & (df['L3_IPV4_DST'] == '192.168.88.251')]['MODBUS_WRITE_REQUESTS'].replace('NIL', '0').astype(int).sum()
+    self.modbus_write_250_252 = df[(df['L3_IPV4_SRC'] == '192.168.88.250') & (df['L3_IPV4_DST'] == '192.168.88.252')]['MODBUS_WRITE_REQUESTS'].replace('NIL', '0').astype(int).sum()
+    self.modbus_write_250_253 = df[(df['L3_IPV4_SRC'] == '192.168.88.250') & (df['L3_IPV4_DST'] == '192.168.88.253')]['MODBUS_WRITE_REQUESTS'].replace('NIL', '0').astype(int).sum()
+    self.modbus_write_250_254 = df[(df['L3_IPV4_SRC'] == '192.168.88.250') & (df['L3_IPV4_DST'] == '192.168.88.254')]['MODBUS_WRITE_REQUESTS'].replace('NIL', '0').astype(int).sum()
+    self.modbus_read_250_251 = df[(df['L3_IPV4_SRC'] == '192.168.88.250') & (df['L3_IPV4_DST'] == '192.168.88.251')]['MODBUS_READ_REQUESTS'].replace('NIL', '0').astype(int).sum()
+    self.modbus_read_250_252 = df[(df['L3_IPV4_SRC'] == '192.168.88.250') & (df['L3_IPV4_DST'] == '192.168.88.252')]['MODBUS_READ_REQUESTS'].replace('NIL', '0').astype(int).sum()
+    self.modbus_read_250_253 = df[(df['L3_IPV4_SRC'] == '192.168.88.250') & (df['L3_IPV4_DST'] == '192.168.88.253')]['MODBUS_READ_REQUESTS'].replace('NIL', '0').astype(int).sum()
+    self.modbus_read_250_254 = df[(df['L3_IPV4_SRC'] == '192.168.88.250') & (df['L3_IPV4_DST'] == '192.168.88.254')]['MODBUS_READ_REQUESTS'].replace('NIL', '0').astype(int).sum()
+    self.modbus_read_total = df['MODBUS_READ_REQUESTS'].replace('NIL', '0').astype(int).sum()
+    self.modbus_write_total = df['MODBUS_WRITE_REQUESTS'].replace('NIL', '0').astype(int).sum()
+    self.modbus_diagnostic_total = df['MODBUS_DIAGNOSTIC_REQUESTS'].replace('NIL', '0').astype(int).sum()
+    self.modbus_other_total = df['MODBUS_OTHER_REQUESTS'].replace('NIL', '0').astype(int).sum()
+    self.modbus_undefined_total = df['MODBUS_UNDEFINED_REQUESTS'].replace('NIL', '0').astype(int).sum()
+    self.modbus_success_total = df['MODBUS_SUCCESS_RESPONSES'].replace('NIL', '0').astype(int).sum()
+    self.modbus_error_total = df['MODBUS_ERROR_RESPONSES'].replace('NIL', '0').astype(int).sum()
 
     self.bytes_88_199 = df[(df['L3_IPV4_SRC'] == '192.168.88.199') | (df['L3_IPV4_DST'] == '192.168.88.199')]['BYTES'].sum()
     self.bytes_88_200 = df[(df['L3_IPV4_SRC'] == '192.168.88.200') | (df['L3_IPV4_DST'] == '192.168.88.200')]['BYTES'].sum()
-
 
     print("Total bytes sent or received by 192.168.88.199: " + str(self.bytes_88_199))
     print("Total bytes sent or received by 192.168.88.200: " + str(self.bytes_88_200))   
@@ -73,37 +91,18 @@ class Statistic:
     print("Number of packets transferred between stations .250 <-> .252: " + str(self.packets_250_252))
     print("Number of packets transferred between stations .250 <-> .253: " + str(self.packets_250_253))
     print("Number of packets transferred between stations .250 <-> .254: " + str(self.packets_250_254))
-
-    # todo .200 -> 250 there may be problem with data 
-
-
-# Print the results
-
-    # self.csv_processor = csv_processor    
-    # self.total_packet_transimted = csv_processor
-            ## todo begin time 
-            ## todo end time 
-            
-            # Celkové procento síťové komunikace tvořené pakety Modbus TCP 
-            # Průměrný počet přenesených paketů za sekundu 
-            # Průměrný počet přenesených paketů Modbus TCP za sekundu 
-            # Průměrný počet přenesených bajtů za sekundu 
-            # Průměrný počet přenesených bajtů protokolu Modbus TCP za sekundu 
-            # Počet přenesených bajtů mezi stanicemi .250 \textless-> .251 
-            # Počet přenesených bajtů mezi stanicemi .250 \textless-> .252 
-            # Počet přenesených bajtů mezi stanicemi .250 \textless-> .253 
-            # Počet přenesených bajtů mezi stanicemi .250 \textless-> .254 
-            # Počet přenesených paketů mezi stanicemi .250 \textless-> .251 
-            # Počet přenesených paketů mezi stanicemi .250 \textless-> .252 
-            # Počet přenesených paketů mezi stanicemi .250 \textless-> .253 
-            # Počet přenesených paketů mezi stanicemi .250 \textless-> .254 
-            # Počet Modbus Read/Write dotazů mezi stanicemi .250 \textless-> .251 
-            # Počet Modbus Read/Write dotazů mezi stanicemi .250 \textless-> .252 
-            # Počet Modbus Read/Write dotazů mezi stanicemi .250 \textless-> .253 
-            # Počet Modbus Read/Write dotazů mezi stanicemi .250 \textless-> .254 
-            # Celkový Počet Modbus Read dotazů 
-            # Celkový Počet Modbus Write dotazů  
-            # Celkový Počet Modbus Diagnostických dotazů 
-            # Celkový Počet Modbus úspěšných odpovědí 
-            # Celkový Počet Modbus neúspěšných odpovědí 
-            # Celkový Počet Modbus dotazů jiného typu 
+    print("Number of Modbus Write requests between stations .250 <-> .251: " + str(self.modbus_write_250_251))
+    print("Number of Modbus Write requests between stations .250 <-> .252: " + str(self.modbus_write_250_252))
+    print("Number of Modbus Write requests between stations .250 <-> .253: " + str(self.modbus_write_250_253))
+    print("Number of Modbus Write requests between stations .250 <-> .254: " + str(self.modbus_write_250_254))
+    print("Number of Modbus Read requests between stations .250 <-> .251: " + str(self.modbus_read_250_251))
+    print("Number of Modbus Read requests between stations .250 <-> .252: " + str(self.modbus_read_250_252))
+    print("Number of Modbus Read requests between stations .250 <-> .253: " + str(self.modbus_read_250_253))
+    print("Number of Modbus Read requests between stations .250 <-> .254: " + str(self.modbus_read_250_254))
+    print("Total number of Modbus Read requests: " + str(self.modbus_read_total))
+    print("Total number of Modbus Write requests: " + str(self.modbus_write_total))
+    print("Total number of Modbus Diagnostic requests: " + str(self.modbus_diagnostic_total))
+    print("Total number of Modbus Other requests: " + str(self.modbus_other_total))
+    print("Total number of Modbus Undefined requests: " + str(self.modbus_undefined_total))
+    print("Total number of Modbus Success responses: " + str(self.modbus_success_total))
+    print("Total number of Modbus Error responses: " + str(self.modbus_error_total))
