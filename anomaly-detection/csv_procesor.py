@@ -101,7 +101,8 @@ class Csv_procesor:
 
     # merge csv files duration to one  
     def mergeDuration(self, csvc):
-        total_time = ""
+        # init 0 time inside variable 
+        total_time = pd.to_datetime(0) - pd.to_datetime(0)
         for csv in csvc:
             # csv[0] == csv file
             # csv[1] == duration

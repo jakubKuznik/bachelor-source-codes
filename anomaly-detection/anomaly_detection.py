@@ -91,7 +91,7 @@ def main():
     # if there is no statistic method just print basic statistic info 
     if (args.m1 == False) and (args.m2 == False) and (args.m3 == False):
         print()
-    
+
     # get basic statistic for each 8
     stats_csvn = statistic.Statistic(csv.csvn_df, csv.csvn_duration)
     stats_csva = statistic.Statistic(csv.csva_df, csv.csva_duration)
