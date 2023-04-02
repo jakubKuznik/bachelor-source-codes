@@ -23,6 +23,9 @@ class Statistic:
     print(df, duration)
     print(self.duration_sec)
 
+    # todo - vztahnout to k 5 ti minutam 
+    # todo  if no method just print it 
+
     ## todo 
     # al1 - al10 master:        250 
     # wh1 - wh10 master:        250  
@@ -43,6 +46,13 @@ class Statistic:
     self.avg_modbus_packets_per_sec = self.modbus_packets_sum / self.duration_sec 
     self.avg_bytes_per_sec = self.bytes_sum / self.duration_sec
     self.avg_modbus_bytes_per_sec = self.modbus_bytes_sum / self.duration_sec
+    self.modbus_read_total = df['MODBUS_READ_REQUESTS'].replace('NIL', '0').astype(int).sum()
+    self.modbus_write_total = df['MODBUS_WRITE_REQUESTS'].replace('NIL', '0').astype(int).sum()
+    self.modbus_diagnostic_total = df['MODBUS_DIAGNOSTIC_REQUESTS'].replace('NIL', '0').astype(int).sum()
+    self.modbus_other_total = df['MODBUS_OTHER_REQUESTS'].replace('NIL', '0').astype(int).sum()
+    self.modbus_undefined_total = df['MODBUS_UNDEFINED_REQUESTS'].replace('NIL', '0').astype(int).sum()
+    self.modbus_success_total = df['MODBUS_SUCCESS_RESPONSES'].replace('NIL', '0').astype(int).sum()
+    self.modbus_error_total = df['MODBUS_ERROR_RESPONSES'].replace('NIL', '0').astype(int).sum()
     self.bytes_250_251 = df[(df['L3_IPV4_SRC'] == '192.168.88.250') & (df['L3_IPV4_DST'] == '192.168.88.251')]['BYTES'].sum()
     self.bytes_250_252 = df[(df['L3_IPV4_SRC'] == '192.168.88.250') & (df['L3_IPV4_DST'] == '192.168.88.252')]['BYTES'].sum()
     self.bytes_250_253 = df[(df['L3_IPV4_SRC'] == '192.168.88.250') & (df['L3_IPV4_DST'] == '192.168.88.253')]['BYTES'].sum()
@@ -59,13 +69,22 @@ class Statistic:
     self.modbus_read_250_252 = df[(df['L3_IPV4_SRC'] == '192.168.88.250') & (df['L3_IPV4_DST'] == '192.168.88.252')]['MODBUS_READ_REQUESTS'].replace('NIL', '0').astype(int).sum()
     self.modbus_read_250_253 = df[(df['L3_IPV4_SRC'] == '192.168.88.250') & (df['L3_IPV4_DST'] == '192.168.88.253')]['MODBUS_READ_REQUESTS'].replace('NIL', '0').astype(int).sum()
     self.modbus_read_250_254 = df[(df['L3_IPV4_SRC'] == '192.168.88.250') & (df['L3_IPV4_DST'] == '192.168.88.254')]['MODBUS_READ_REQUESTS'].replace('NIL', '0').astype(int).sum()
-    self.modbus_read_total = df['MODBUS_READ_REQUESTS'].replace('NIL', '0').astype(int).sum()
-    self.modbus_write_total = df['MODBUS_WRITE_REQUESTS'].replace('NIL', '0').astype(int).sum()
-    self.modbus_diagnostic_total = df['MODBUS_DIAGNOSTIC_REQUESTS'].replace('NIL', '0').astype(int).sum()
-    self.modbus_other_total = df['MODBUS_OTHER_REQUESTS'].replace('NIL', '0').astype(int).sum()
-    self.modbus_undefined_total = df['MODBUS_UNDEFINED_REQUESTS'].replace('NIL', '0').astype(int).sum()
-    self.modbus_success_total = df['MODBUS_SUCCESS_RESPONSES'].replace('NIL', '0').astype(int).sum()
-    self.modbus_error_total = df['MODBUS_ERROR_RESPONSES'].replace('NIL', '0').astype(int).sum()
+    self.bytes_250_251_A = df[(df['L3_IPV4_SRC'] == '192.168.88.250') & (df['L3_IPV4_DST'] == '192.168.88.251')]['BYTES_A'].replace('NIL', '0').astype(int).sum()
+    self.bytes_251_250_B = df[(df['L3_IPV4_SRC'] == '192.168.88.250') & (df['L3_IPV4_DST'] == '192.168.88.251')]['BYTES_B'].replace('NIL', '0').astype(int).sum()
+    self.bytes_250_252_A = df[(df['L3_IPV4_SRC'] == '192.168.88.250') & (df['L3_IPV4_DST'] == '192.168.88.252')]['BYTES_A'].replace('NIL', '0').astype(int).sum()
+    self.bytes_252_250_B = df[(df['L3_IPV4_SRC'] == '192.168.88.250') & (df['L3_IPV4_DST'] == '192.168.88.252')]['BYTES_B'].replace('NIL', '0').astype(int).sum()
+    self.bytes_250_253_A = df[(df['L3_IPV4_SRC'] == '192.168.88.250') & (df['L3_IPV4_DST'] == '192.168.88.253')]['BYTES_A'].replace('NIL', '0').astype(int).sum()
+    self.bytes_253_250_B = df[(df['L3_IPV4_SRC'] == '192.168.88.250') & (df['L3_IPV4_DST'] == '192.168.88.253')]['BYTES_B'].replace('NIL', '0').astype(int).sum()
+    self.bytes_250_254_A = df[(df['L3_IPV4_SRC'] == '192.168.88.250') & (df['L3_IPV4_DST'] == '192.168.88.254')]['BYTES_A'].replace('NIL', '0').astype(int).sum()
+    self.bytes_254_250_B = df[(df['L3_IPV4_SRC'] == '192.168.88.250') & (df['L3_IPV4_DST'] == '192.168.88.254')]['BYTES_B'].replace('NIL', '0').astype(int).sum()
+    self.packets_250_251_A = df[(df['L3_IPV4_SRC'] == '192.168.88.250') & (df['L3_IPV4_DST'] == '192.168.88.251')]['PACKETS_A'].replace('NIL', '0').astype(int).sum()
+    self.packets_251_250_B = df[(df['L3_IPV4_SRC'] == '192.168.88.251') & (df['L3_IPV4_DST'] == '192.168.88.250')]['PACKETS_B'].replace('NIL', '0').astype(int).sum()
+    self.packets_250_252_A = df[(df['L3_IPV4_SRC'] == '192.168.88.250') & (df['L3_IPV4_DST'] == '192.168.88.252')]['PACKETS_A'].replace('NIL', '0').astype(int).sum()
+    self.packets_252_250_B = df[(df['L3_IPV4_SRC'] == '192.168.88.252') & (df['L3_IPV4_DST'] == '192.168.88.250')]['PACKETS_B'].replace('NIL', '0').astype(int).sum()
+    self.packets_250_253_A = df[(df['L3_IPV4_SRC'] == '192.168.88.250') & (df['L3_IPV4_DST'] == '192.168.88.253')]['PACKETS_A'].replace('NIL', '0').astype(int).sum()
+    self.packets_253_250_B = df[(df['L3_IPV4_SRC'] == '192.168.88.253') & (df['L3_IPV4_DST'] == '192.168.88.250')]['PACKETS_B'].replace('NIL', '0').astype(int).sum()
+    self.packets_250_254_A = df[(df['L3_IPV4_SRC'] == '192.168.88.250') & (df['L3_IPV4_DST'] == '192.168.88.254')]['PACKETS_A'].replace('NIL', '0').astype(int).sum()
+    self.packets_254_250_B = df[(df['L3_IPV4_SRC'] == '192.168.88.254') & (df['L3_IPV4_DST'] == '192.168.88.250')]['PACKETS_B'].replace('NIL', '0').astype(int).sum()
 
     self.bytes_88_199 = df[(df['L3_IPV4_SRC'] == '192.168.88.199') | (df['L3_IPV4_DST'] == '192.168.88.199')]['BYTES'].sum()
     self.bytes_88_200 = df[(df['L3_IPV4_SRC'] == '192.168.88.200') | (df['L3_IPV4_DST'] == '192.168.88.200')]['BYTES'].sum()
@@ -99,6 +118,22 @@ class Statistic:
     print("Number of Modbus Read requests between stations .250 <-> .252: " + str(self.modbus_read_250_252))
     print("Number of Modbus Read requests between stations .250 <-> .253: " + str(self.modbus_read_250_253))
     print("Number of Modbus Read requests between stations .250 <-> .254: " + str(self.modbus_read_250_254))
+    print("Number of bytes transferred from .250 to .251: " + str(self.bytes_250_251_A))
+    print("Number of bytes transferred from .251 to .250: " + str(self.bytes_251_250_B))
+    print("Number of bytes transferred from .250 to .252: " + str(self.bytes_250_252_A))
+    print("Number of bytes transferred from .252 to .250: " + str(self.bytes_252_250_B))
+    print("Number of bytes transferred from .250 to .253: " + str(self.bytes_250_253_A))
+    print("Number of bytes transferred from .253 to .250: " + str(self.bytes_253_250_B))
+    print("Number of bytes transferred from .250 to .254: " + str(self.bytes_250_254_A))
+    print("Number of bytes transferred from .254 to .250: " + str(self.bytes_254_250_B))
+    print("Number of packets transferred from .250 to .251: " + str(self.packets_250_251_A))
+    print("Number of packets transferred from .251 to .250: " + str(self.packets_251_250_B))
+    print("Number of packets transferred from .250 to .252: " + str(self.packets_250_252_A))
+    print("Number of packets transferred from .252 to .250: " + str(self.packets_252_250_B))
+    print("Number of packets transferred from .250 to .253: " + str(self.packets_250_253_A))
+    print("Number of packets transferred from .253 to .250: " + str(self.packets_253_250_B))
+    print("Number of packets transferred from .250 to .254: " + str(self.packets_250_254_A))
+    print("Number of packets transferred from .254 to .250: " + str(self.packets_254_250_B))
     print("Total number of Modbus Read requests: " + str(self.modbus_read_total))
     print("Total number of Modbus Write requests: " + str(self.modbus_write_total))
     print("Total number of Modbus Diagnostic requests: " + str(self.modbus_diagnostic_total))
