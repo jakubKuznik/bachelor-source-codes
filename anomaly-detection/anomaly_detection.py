@@ -10,6 +10,7 @@ import argparse
 import csv_procesor
 import sys
 import statistic
+import detection_methods as dm 
 
 ## Class that contains methods for argparsing and argument validation 
 class Arg_parse:
@@ -97,7 +98,7 @@ def main():
         stats_csvn.printStatistic()
     
     if args.m1 == True:
-        statistic.Statistic.m1_basic_stats(stats_csva, stats_csvn)
+       dm.M1.m1_basic_stats(stats_csva, stats_csvn)
 
 
     ## if m1 

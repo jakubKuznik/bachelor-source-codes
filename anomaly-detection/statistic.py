@@ -5,6 +5,7 @@
 # Description: . 
 
 import pandas as pd 
+import matplotlib.pyplot as plt
 
 class Statistic:
   
@@ -74,11 +75,9 @@ class Statistic:
 
     self.bytes_88_199 = df[(df['L3_IPV4_SRC'] == '192.168.88.199') | (df['L3_IPV4_DST'] == '192.168.88.199')]['BYTES'].sum() * to_five_minutes
     self.bytes_88_200 = df[(df['L3_IPV4_SRC'] == '192.168.88.200') | (df['L3_IPV4_DST'] == '192.168.88.200')]['BYTES'].sum() * to_five_minutes
-    
-  @staticmethod
-  def m1_basic_stats(dfN, dfA):
-    print("hihi")
-  
+
+    self.df = df
+
   ## replace nils for specific columns in df 
   def replaceNil(self, df):
     change_list = ['BYTES', 'L4_PORT_SRC', 'L4_PORT_DST', 'PACKETS', 'BYTES_A', 'PACKETS_A', 'BYTES_B', 'PACKETS_B',
