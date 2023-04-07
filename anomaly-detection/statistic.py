@@ -5,42 +5,24 @@
 # Description: . 
 
 import pandas as pd 
-import csv_procesor
-import datetime
 
 class Statistic:
-    # todo - vztahnout to k 5 ti minutam 
-    # todo  if no method just print it 
-
-    ## todo 
-    # al1 - al10 master:        250 
-    # wh1 - wh10 master:        250  
-    # inject10 - inject 100:    250
-    # dos:                      250
-    # tcp: attacker 199 master  250  othres are filtered 
-    # replay                    250  (icmp on 199 ignore)
-    
-    # todo 
-    # basic statis // Q jaky nastaavit prah 
-    # k-means
-    # 3sigma 
   
   ##
   # Count basic statistic for csv. It relates everything to 5 min interval 
   def __init__(self, df, duration):
 
+    df = self.replaceNil(df) 
+
     self.duration_sec = duration.total_seconds()
-    ## constant so we count everything to 5 min interval 
-    print(df, duration)
-    print(self.duration_sec)
     ## this constant is used to count everything to 5 minut interval 300s 
     five_minutes = 300
     to_five_minutes = five_minutes / self.duration_sec
-    print(to_five_minutes)
 
     self.packets_sum = df['PACKETS'].sum() * to_five_minutes
     self.bytes_sum = df['BYTES'].sum() * to_five_minutes
     self.avg_packet_size = self.bytes_sum / self.packets_sum
+    
     self.modbus_packets_sum = df[(df['L4_PORT_SRC'] == 502) | (df['L4_PORT_DST'] == 502)]['PACKETS'].sum() * to_five_minutes
     self.modbus_bytes_sum = df[(df['L4_PORT_SRC'] == 502) | (df['L4_PORT_DST'] == 502)]['BYTES'].sum() * to_five_minutes
     self.avg_modbus_packet_size = self.modbus_bytes_sum / self.modbus_packets_sum
@@ -92,7 +74,26 @@ class Statistic:
 
     self.bytes_88_199 = df[(df['L3_IPV4_SRC'] == '192.168.88.199') | (df['L3_IPV4_DST'] == '192.168.88.199')]['BYTES'].sum() * to_five_minutes
     self.bytes_88_200 = df[(df['L3_IPV4_SRC'] == '192.168.88.200') | (df['L3_IPV4_DST'] == '192.168.88.200')]['BYTES'].sum() * to_five_minutes
+    
+  @staticmethod
+  def m1_basic_stats(dfN, dfA):
+    print("hihi")
+  
+  ## replace nils for specific columns in df 
+  def replaceNil(self, df):
+    change_list = ['BYTES', 'L4_PORT_SRC', 'L4_PORT_DST', 'PACKETS', 'BYTES_A', 'PACKETS_A', 'BYTES_B', 'PACKETS_B',
+    'MODBUS_READ_REQUESTS', 'MODBUS_WRITE_REQUESTS', 'MODBUS_DIAGNOSTIC_REQUESTS', 'MODBUS_OTHER_REQUESTS',  
+    'MODBUS_UNDEFINED_REQUESTS', 'MODBUS_SUCCESS_RESPONSES', 'MODBUS_ERROR_RESPONSES']
 
+    for node in change_list:
+      df[node] = df[node].replace('nil', '0')
+      df[node] = df[node].replace('NIL', '0')
+      df[node] = df[node].astype(int)
+    
+    return df
+
+  ## print statistic 
+  def printStatistic(self):
     print("STATISTIC: Everything has been averaged into 5-minute intervals.")
     print("Total bytes sent or received by 192.168.88.199: " + str(self.bytes_88_199))
     print("Total bytes sent or received by 192.168.88.200: " + str(self.bytes_88_200))   

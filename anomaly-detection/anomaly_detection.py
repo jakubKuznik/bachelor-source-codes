@@ -6,7 +6,6 @@
 # Execution:
 #      python3 anomaly_detection.py -csva a.csv -cvsn // only get basic statistic 
 
-import numpy
 import argparse
 import csv_procesor
 import sys
@@ -85,16 +84,20 @@ def main():
     dprint(args)
 
     csv = csv_procesor.Csv_procesor(csvn=args.csvn, csva=args.csva)
-    dprint(csv.csva_df)
-    dprint(csv.csvn_df)
+    
+    # init statistic class for normal and malicious communication 
+    stats_csvn = statistic.Statistic(csv.csvn_df, csv.csvn_duration)
+    stats_csva = statistic.Statistic(csv.csva_df, csv.csva_duration)
 
     # if there is no statistic method just print basic statistic info 
     if (args.m1 == False) and (args.m2 == False) and (args.m3 == False):
-        print()
-
-    # get basic statistic for each 8
-    stats_csvn = statistic.Statistic(csv.csvn_df, csv.csvn_duration)
-    stats_csva = statistic.Statistic(csv.csva_df, csv.csva_duration)
+        print("CSVA")
+        stats_csva.printStatistic()
+        print("CSVN")
+        stats_csvn.printStatistic()
+    
+    if args.m1 == True:
+        statistic.Statistic.m1_basic_stats(stats_csva, stats_csvn)
 
 
     ## if m1 
