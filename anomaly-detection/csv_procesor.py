@@ -66,6 +66,11 @@ class Csv_procesor:
         ## merge time duration 
         self.csva_duration = self.mergeDuration(csv_a)
         self.csvn_duration = self.mergeDuration(csv_n)
+        
+        #print(self.csva_df[['BYTES', 'PACKETS']])
+        #self.csva_df['BYTES'] += self.csva_df['PACKETS'] * 12
+        #print(self.csva_df[['BYTES', 'PACKETS']])
+        #self.csva_df.to_csv('filename.csv', sep=',', index=False)
 
         print("DEBUG: CSV parsed succesfully")
 

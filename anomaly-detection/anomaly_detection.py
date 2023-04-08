@@ -98,7 +98,7 @@ def main():
         stats_csvn.printStatistic()
     
     if args.m1 == True:
-       dm.M1.m1_basic_stats(stats_csva, stats_csvn)
+       dm.M1.m1_basic_stats(stats_csvn, stats_csva)
 
 
     ## if m1 

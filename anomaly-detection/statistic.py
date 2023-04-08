@@ -16,9 +16,12 @@ class Statistic:
     df = self.replaceNil(df) 
 
     self.duration_sec = duration.total_seconds()
+    print("hihi")
+    print(self.duration_sec)
     ## this constant is used to count everything to 5 minut interval 300s 
     five_minutes = 300
     to_five_minutes = five_minutes / self.duration_sec
+    to_five_minutes = 1
 
     self.packets_sum = df['PACKETS'].sum() * to_five_minutes
     self.bytes_sum = df['BYTES'].sum() * to_five_minutes
