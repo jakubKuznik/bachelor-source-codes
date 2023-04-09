@@ -99,6 +99,8 @@ def main():
     
     if args.m1 == True:
        dm.M1.m1_basic_stats(stats_csvn, stats_csva)
+    elif args.m2 == True:
+       dm.M2.m2_3sigma(stats_csvn, stats_csva)
 
 
     ## if m1 

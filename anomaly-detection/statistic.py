@@ -38,7 +38,17 @@ class Statistic:
     self.avg_bytes_per_sec = (self.bytes_sum / five_minutes)
     self.avg_modbus_bytes_per_sec = (self.modbus_bytes_sum / five_minutes)
     self.modbus_read_total = (df['MODBUS_READ_REQUESTS'].replace('NIL', '0').astype(int).sum()) * to_five_minutes
+    
     self.modbus_write_total = (df['MODBUS_WRITE_REQUESTS'].replace('NIL', '0').astype(int).sum()) * to_five_minutes
+    self.modbus_write_sigma = self.write_sigma(df, self.modbus_write_total)
+    exit()
+    ## standard deviation 
+    #  Σ(xᵢ - μ)² / n
+    # for each ipfix: 
+    #   a += ((five_minutes / (end_time - start time)) * WRITE request) - modbus_write_total  
+    #   n++
+    # a / n 
+
     self.modbus_diagnostic_total = (df['MODBUS_DIAGNOSTIC_REQUESTS'].replace('NIL', '0').astype(int).sum()) * to_five_minutes
     self.modbus_other_total = (df['MODBUS_OTHER_REQUESTS'].replace('NIL', '0').astype(int).sum()) * to_five_minutes
     self.modbus_undefined_total = (df['MODBUS_UNDEFINED_REQUESTS'].replace('NIL', '0').astype(int).sum()) * to_five_minutes
@@ -81,6 +91,26 @@ class Statistic:
     self.bytes_88_200 = (df[(df['L3_IPV4_SRC'] == '192.168.88.200') | (df['L3_IPV4_DST'] == '192.168.88.200')]['BYTES'].sum()) * to_five_minutes
 
     self.df = df
+
+  ## standard deviation 
+  #  Σ(xᵢ - μ)² / n
+  # for each ipfix: 
+  #   a += ((five_minutes / (end_time - start time)) * WRITE request) - modbus_write_total  
+  #   n++
+  # a / n 
+  def write_sigma(self, df, mean):
+    to_five_minutes = 1
+    self.modbus_write_total = (df['MODBUS_WRITE_REQUESTS'].replace('NIL', '0').astype(int).sum())
+    df['MODBUS_WRITE_REQUESTS'] = pd.to_numeric(df['MODBUS_WRITE_REQUESTS'], errors='coerce')
+
+    df_filtered = df[df['MODBUS_WRITE_REQUESTS'].replace('NIL', '0').astype(int) >= 1]
+    # print the filtered dataframe
+    print(df_filtered)
+    
+    
+    print("hi")
+
+
 
   ## replace nils for specific columns in df 
   def replaceNil(self, df):

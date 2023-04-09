@@ -8,6 +8,24 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import statistic as stat
 
+class M2:
+  @staticmethod
+  def m2_3sigma(dfN, dfA):
+    mean_deviation = dfN.modbus_write_total
+    dispersion = mean_deviation * mean_deviation
+    significance_level = 0.05 # 5% chance of rejecting 
+    upper_bound = mean_deviation + (3 * mean_deviation)
+    lower_bound = mean_deviation + (3 * mean_deviation)
+    
+    print("DEBUG: 3 sigma test")
+    print("DEBUG: mean deviation: " + str(mean_deviation))
+    print("DEBUG: dispersion:     " + str(dispersion))
+    print("DEBUG: signifi level:  " + str(significance_level))
+    print("DEBUG: upper bound:    " + str(upper_bound))
+    print("DEBUG: 3 lower bound:  " + str(lower_bound))
+
+    return
+
 class M1:
 
   @staticmethod
@@ -16,6 +34,13 @@ class M1:
     M1.plot_modbus_com_tot(dfN, dfA)
     M1.plot_packets(dfN, dfA)    
     M1.plot_detail_252(dfN, dfA)    
+
+  # @staticmethod 
+  # todo check other connections for tcp 
+
+  # @staticmethod
+  # todo request vs succes ratio 
+
 
   @staticmethod
   def plot_detail_252(dfN, dfA):
