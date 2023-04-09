@@ -8,24 +8,96 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import statistic as stat
 
+import numpy as np
+from scipy.stats import norm
+
 class M2:
   @staticmethod
   def m2_3sigma(dfN, dfA):
     mean = dfN.modbus_write_total
     sigma = dfN.modbus_write_sigma # Σ(xᵢ - μ)² / n
-    dispersion = sigma * sigma 
-    significance_level = 0.05 # 5% chance of rejecting 
-    upper_bound = mean + (3 * sigma)
-    lower_bound = mean - (3 * sigma)
+    #dispersion = sigma * sigma 
+    #significance_level = 0.05 # 5% chance of rejecting 
+    #upper_bound = mean + (3 * sigma)
+    #lower_bound = mean - (3 * sigma)
     
     print("DEBUG: 3 sigma test")
     print("DEBUG: mean deviation: " + str(sigma))
-    print("DEBUG: dispersion:     " + str(dispersion))
-    print("DEBUG: signifi level:  " + str(significance_level))
-    print("DEBUG: upper bound:    " + str(upper_bound))
-    print("DEBUG: 3 lower bound:  " + str(lower_bound))
+    #print("DEBUG: dispersion:     " + str(dispersion))
+    #print("DEBUG: signifi level:  " + str(significance_level))
+    #print("DEBUG: upper bound:    " + str(upper_bound))
+    #print("DEBUG: 3 lower bound:  " + str(lower_bound))
+
+    M2.plot_write(mean, sigma, dfA.modbus_write_total)
+
+
+    mean2 = dfN.modbus_packets_sum
+    sigma2 = dfN.modbus_packets_sigma # Σ(xᵢ - μ)² / n
+    #dispersion2 = sigma2 * sigma2 
+    #significance_level2 = 0.05 # 5% chance of rejecting 
+    #upper_bound2 = mean + (3 * sigma)
+    #lower_bound2 = mean - (3 * sigma)
+    M2.plot_packets(mean2, sigma2, dfA.modbus_packets_sum)
 
     return
+  
+  @staticmethod 
+  def plot_packets(mean, sigma, anomaly):
+
+    # Create an array of x-values for the plot
+    x = np.linspace(mean - 4*sigma, mean + 4*sigma, 1000)
+
+    # Calculate the normal distribution values for the x-values
+    y = (1 / (sigma * np.sqrt(2 * np.pi))) * np.exp(-0.5 * ((x - mean) / sigma)**2)
+
+    # Create the plot
+    fig, ax = plt.subplots()
+    ax.plot(x, y)
+
+        # Add vertical lines for 1, 2, and 3 standard deviations
+    stds = [1, 2, 3]
+    colors = ['r', 'g', 'b']
+    labels = ['1σ', '2σ', '3σ']
+    for std, color, label in zip(stds, colors, labels):
+      x_left = mean - std*sigma
+      x_right = mean + std*sigma
+      ax.axvline(x_left, color=color, linestyle='--')
+      ax.axvline(x_right, color=color, linestyle='--')
+      ax.text(x_left, 1.05, label, transform=ax.get_xaxis_transform(), color=color, ha='center')
+    
+    ax.scatter(anomaly, 0, marker='x', color='red')
+    ax.set_xlabel('Modbus pakety (5min)')
+    ax.set_ylabel('Pravděpodobnost')
+    plt.show()
+
+  @staticmethod 
+  def plot_write(mean, sigma, anomaly):
+
+    # Create an array of x-values for the plot
+    x = np.linspace(mean - 4*sigma, mean + 4*sigma, 1000)
+
+    # Calculate the normal distribution values for the x-values
+    y = (1 / (sigma * np.sqrt(2 * np.pi))) * np.exp(-0.5 * ((x - mean) / sigma)**2)
+
+    # Create the plot
+    fig, ax = plt.subplots()
+    ax.plot(x, y)
+
+        # Add vertical lines for 1, 2, and 3 standard deviations
+    stds = [1, 2, 3]
+    colors = ['r', 'g', 'b']
+    labels = ['1σ', '2σ', '3σ']
+    for std, color, label in zip(stds, colors, labels):
+      x_left = mean - std*sigma
+      x_right = mean + std*sigma
+      ax.axvline(x_left, color=color, linestyle='--')
+      ax.axvline(x_right, color=color, linestyle='--')
+      ax.text(x_left, 1.05, label, transform=ax.get_xaxis_transform(), color=color, ha='center')
+    
+    ax.scatter(anomaly, 0, marker='x', color='red')
+    ax.set_xlabel('Modbus Write příkazy (5min)')
+    ax.set_ylabel('Pravděpodobnost')
+    plt.show()
 
 class M1:
 

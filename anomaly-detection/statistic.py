@@ -28,7 +28,9 @@ class Statistic:
     self.bytes_sum = df['BYTES'].sum() * to_five_minutes
     self.avg_packet_size = self.bytes_sum / self.packets_sum
     
-    self.modbus_packets_sum = (df[(df['L4_PORT_SRC'] == 502) | (df['L4_PORT_DST'] == 502)]['PACKETS'].sum()) * to_five_minutes
+    self.modbus_packets_sum   = (df[(df['L4_PORT_SRC'] == 502) | (df['L4_PORT_DST'] == 502)]['PACKETS'].sum()) * to_five_minutes
+    self.modbus_packets_sigma = self.m_packet_sigma(df, self.modbus_packets_sum) 
+
     self.modbus_bytes_sum = (df[(df['L4_PORT_SRC'] == 502) | (df['L4_PORT_DST'] == 502)]['BYTES'].sum()) * to_five_minutes
     self.avg_modbus_packet_size = (self.modbus_bytes_sum / self.modbus_packets_sum)
     self.avg_modbus_packet_size = (self.modbus_bytes_sum / self.modbus_packets_sum)
@@ -84,6 +86,33 @@ class Statistic:
     self.bytes_88_200 = (df[(df['L3_IPV4_SRC'] == '192.168.88.200') | (df['L3_IPV4_DST'] == '192.168.88.200')]['BYTES'].sum()) * to_five_minutes
 
     self.df = df
+  
+  ## standard deviation 
+  #  Σ(xᵢ - μ)² / n
+  # for each ipfix: 
+  #   a += ((five_minutes / (end_time - start time)) * WRITE request) - modbus_write_total  
+  #   n++
+  # a / n 
+  def m_packet_sigma(self, df, mean):
+    to_five_minutes = 1
+    print(df)
+    df_filtered = df[(df['L4_PORT_SRC'] == 502) | (df['L4_PORT_DST'] == 502)]
+    print(df_filtered)
+    
+    n = 0
+    sum = 0
+    for index, row in df_filtered.iterrows():
+      write_req = row['PACKETS']
+      duration  = (pd.to_datetime(row['END_SEC']) - pd.to_datetime(row['START_SEC'])).total_seconds()
+      if duration == 0:
+        continue
+      to_five_minutes = 300 / duration
+      value = write_req * to_five_minutes
+      sum += (value - mean)*(value - mean)
+      n += 1
+
+    sigma = sum / n
+    return mean*0.01
 
   ## standard deviation 
   #  Σ(xᵢ - μ)² / n
@@ -94,7 +123,6 @@ class Statistic:
   def write_sigma(self, df, mean):
     to_five_minutes = 1
     df_filtered = df[df['MODBUS_WRITE_REQUESTS'].replace('NIL', '0').astype(int) >= 1]
-    
     
     n = 0
     sum = 0
