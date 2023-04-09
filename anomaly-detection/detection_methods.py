@@ -11,14 +11,15 @@ import statistic as stat
 class M2:
   @staticmethod
   def m2_3sigma(dfN, dfA):
-    mean_deviation = dfN.modbus_write_total
-    dispersion = mean_deviation * mean_deviation
+    mean = dfN.modbus_write_total
+    sigma = dfN.modbus_write_sigma # Σ(xᵢ - μ)² / n
+    dispersion = sigma * sigma 
     significance_level = 0.05 # 5% chance of rejecting 
-    upper_bound = mean_deviation + (3 * mean_deviation)
-    lower_bound = mean_deviation + (3 * mean_deviation)
+    upper_bound = mean + (3 * sigma)
+    lower_bound = mean - (3 * sigma)
     
     print("DEBUG: 3 sigma test")
-    print("DEBUG: mean deviation: " + str(mean_deviation))
+    print("DEBUG: mean deviation: " + str(sigma))
     print("DEBUG: dispersion:     " + str(dispersion))
     print("DEBUG: signifi level:  " + str(significance_level))
     print("DEBUG: upper bound:    " + str(upper_bound))

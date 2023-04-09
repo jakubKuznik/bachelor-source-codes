@@ -41,13 +41,6 @@ class Statistic:
     
     self.modbus_write_total = (df['MODBUS_WRITE_REQUESTS'].replace('NIL', '0').astype(int).sum()) * to_five_minutes
     self.modbus_write_sigma = self.write_sigma(df, self.modbus_write_total)
-    exit()
-    ## standard deviation 
-    #  Σ(xᵢ - μ)² / n
-    # for each ipfix: 
-    #   a += ((five_minutes / (end_time - start time)) * WRITE request) - modbus_write_total  
-    #   n++
-    # a / n 
 
     self.modbus_diagnostic_total = (df['MODBUS_DIAGNOSTIC_REQUESTS'].replace('NIL', '0').astype(int).sum()) * to_five_minutes
     self.modbus_other_total = (df['MODBUS_OTHER_REQUESTS'].replace('NIL', '0').astype(int).sum()) * to_five_minutes
@@ -100,17 +93,21 @@ class Statistic:
   # a / n 
   def write_sigma(self, df, mean):
     to_five_minutes = 1
-    self.modbus_write_total = (df['MODBUS_WRITE_REQUESTS'].replace('NIL', '0').astype(int).sum())
-    df['MODBUS_WRITE_REQUESTS'] = pd.to_numeric(df['MODBUS_WRITE_REQUESTS'], errors='coerce')
-
     df_filtered = df[df['MODBUS_WRITE_REQUESTS'].replace('NIL', '0').astype(int) >= 1]
-    # print the filtered dataframe
-    print(df_filtered)
     
     
-    print("hi")
+    n = 0
+    sum = 0
+    for index, row in df_filtered.iterrows():
+      write_req = row['MODBUS_WRITE_REQUESTS']
+      duration  = (pd.to_datetime(row['END_SEC']) - pd.to_datetime(row['START_SEC'])).total_seconds()
+      to_five_minutes = 300 / duration
+      value = write_req * to_five_minutes
+      sum += (value - mean)*(value - mean)
+      n += 1
 
-
+    sigma = sum / n
+    return mean*0.01
 
   ## replace nils for specific columns in df 
   def replaceNil(self, df):
