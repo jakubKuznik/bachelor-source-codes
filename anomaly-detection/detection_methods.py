@@ -15,7 +15,26 @@ class M1:
 
     M1.plot_modbus_com_tot(dfN, dfA)
     M1.plot_packets(dfN, dfA)    
+    M1.plot_detail_252(dfN, dfA)    
 
+  @staticmethod
+  def plot_detail_252(dfN, dfA):
+    # Create the figure and subplots
+    fig, axs = plt.subplots(1, 2, figsize=(10, 5))
+    
+    # Get the data for each pie chart
+    write = [dfN.modbus_write_250_252 , dfA.modbus_write_250_252]
+    read  = [dfN.modbus_read_250_252, dfA.modbus_read_250_252]
+    
+    labels = ['Normální komunikace', 'Útok']
+    
+    axs[0].pie(write, autopct=lambda pct: M1.format_pct_value(pct, write), startangle=90)
+    axs[0].set_title('Počet write příkazů na zařízení .252')
+    axs[1].pie(read, autopct=lambda pct: M1.format_pct_value(pct, read), startangle=90)
+    axs[1].set_title('Počet read příkazů na zařízení .252')
+
+    fig.legend(labels, loc='lower center')
+    plt.show()
 
   ## it display number of packets trasmitted between each station 
   @staticmethod
@@ -26,9 +45,9 @@ class M1:
     
     # Get the data for each pie chart
     # p_250_251 = [dfN.packets_250_251, dfA.packets_250_251]
-    p_250_252 = [dfA.bytes_250_252, dfN.bytes_250_252]
-    p_250_253 = [dfA.bytes_250_253, dfN.bytes_250_253]
-    p_250_254 = [dfA.bytes_250_254, dfN.bytes_250_254]
+    p_250_252 = [dfN.packets_250_252, dfA.packets_250_252]
+    p_250_253 = [dfN.packets_250_253, dfA.packets_250_253]
+    p_250_254 = [dfN.packets_250_254, dfA.packets_250_254]
     
     
     labels = ['Normální komunikace', 'Útok']
@@ -53,9 +72,9 @@ class M1:
     fig, axs = plt.subplots(1, 3, figsize=(15, 5))
     
     # Get the data for each pie chart
-    modbus_read = [dfA.modbus_read_total, dfN.modbus_read_total]
-    modbus_write = [dfA.modbus_write_total, dfN.modbus_write_total]
-    modbus_success = [dfA.modbus_success_total, dfN.modbus_success_total]
+    modbus_read = [dfN.modbus_read_total, dfA.modbus_read_total]
+    modbus_write = [dfN.modbus_write_total, dfA.modbus_write_total]
+    modbus_success = [dfN.modbus_success_total, dfA.modbus_success_total]
     
     labels = ['Normální komunikace', 'Útok']
     
