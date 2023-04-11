@@ -11,15 +11,68 @@ import statistic as stat
 import numpy as np
 from scipy.stats import norm
 
-
+import warnings
+warnings.filterwarnings("ignore", message="The frame.append method is deprecated and will be removed from pandas in a future version. Use pandas.concat instead.")
 ## class M3 implements t-test 
 class M3:
   @staticmethod
   def m3_t_test(dfN, dfA):
     print("DEBUG: t-test")
+    sliced_comunication = M3.slice_stats(dfA)
+    # todo t-test rozdelime utok na x 60 sekundovych intervalu a provedeme t-test
+    write_req     = M3.get_write_request(sliced_comunication)
+    write_req_252 = M3.get_write_request_252(sliced_comunication) 
+    print(write_req)
+    print(write_req_252)
+    print(dfN.modbus_write_total * 0.2)
+    print(dfN.modbus_write_250_252 * 0.2)
+
+
+  @staticmethod
+  # return list of modbus write commands per 60sec  
+  def get_write_request(slices):
+    out = []
+    for s in slices:
+      out.append((s['MODBUS_WRITE_REQUESTS'].replace('NIL', '0').astype(int).sum()))
+    return out
   
-  # todo t-test rozdelime utok na x 60 sekundovych intervalu a provedeme t-test 
-    return
+  @staticmethod
+  # return list of modbus write commands per 60sec  
+  def get_write_request_252(slices):
+    out = []
+    for s in slices:
+      temp = (s[(s['L3_IPV4_SRC'] == '192.168.88.250') & (s['L3_IPV4_DST'] == '192.168.88.252')])
+      out.append((temp['MODBUS_WRITE_REQUESTS'].replace('NIL', '0').astype(int).sum()))
+    return out
+  
+  @staticmethod
+  ## method slices pandas into one minute chunks and return list with these chunks 
+  def slice_stats(dfA):
+    dfA.df = dfA.df.sort_values(by='START_SEC')
+    starttime    = pd.to_datetime(dfA.df.iloc[0]["START_SEC"])
+    slices_total = int(dfA.duration_sec // 60)
+    ## sliced pandas dataframe 
+    slices        = []
+    # one slice of data frame (0min, 1min)
+    slice = pd.DataFrame()
+    time_block_end = starttime + pd.Timedelta(seconds=60)
+    n = 0 # current slice 
+    
+    for index, row in dfA.df.iterrows():
+        curr_time = pd.to_datetime(row['START_SEC'])
+        # end of block 
+        if curr_time > time_block_end:
+            slices.append(slice)
+            slice = pd.DataFrame()
+            n += 1 
+            if n == slices_total: # if last block 
+                break
+            # start new slice 
+            time_block_end += pd.Timedelta(seconds=60)
+        slice = slice.append(row)
+        # slice = pd.concat([slice, row], axis=1) FUTURE PANDAS VERSION
+    
+    return slices
 
 ## class M2 implements and plot 3-sigma rule detection
 class M2:
