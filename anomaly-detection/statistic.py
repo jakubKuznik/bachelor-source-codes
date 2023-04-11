@@ -136,7 +136,7 @@ class Statistic:
       n += 1
 
     sigma = sum / n
-    return mean*0.03
+    return mean*0.02
 
   # standard deviation 
   def p_250_252_sigma(self, df, mean):
