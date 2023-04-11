@@ -7,6 +7,7 @@
 import pandas as pd 
 import matplotlib.pyplot as plt
 import statistic as stat
+from scipy.stats import ttest_1samp
 
 import numpy as np
 from scipy.stats import norm
@@ -22,10 +23,24 @@ class M3:
     # todo t-test rozdelime utok na x 60 sekundovych intervalu a provedeme t-test
     write_req     = M3.get_write_request(sliced_comunication)
     write_req_252 = M3.get_write_request_252(sliced_comunication) 
-    print(write_req)
-    print(write_req_252)
-    print(dfN.modbus_write_total * 0.2)
-    print(dfN.modbus_write_250_252 * 0.2)
+
+    M3.t_test(write_req, dfN.modbus_write_total * 0.2, "T test write packtes")
+    M3.t_test(write_req_252, dfN.modbus_write_250_252 * 0.2, "T test write packets 252")
+
+  @staticmethod 
+  def t_test(values, mean, text):
+    t_stat, p_val = ttest_1samp(values, mean)
+    print("---------------------------------------")
+    print(text)
+    print("mean:", mean)
+    print("tested values:", values)
+    print("t-statistic:", t_stat)
+    print("p-value:", p_val)
+    if p_val < 0.05:
+        print("The t-test has a statistically significant difference")
+    else:
+        print("The t-test does not have a statistically significant difference")
+    print("---------------------------------------")
 
 
   @staticmethod
