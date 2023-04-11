@@ -43,7 +43,6 @@ class M2:
     anomaly4 = dfA.modbus_write_250_252 
     M2.plot_result(mean4, sigma4, anomaly4, "Modbus Write příkazy na zařízení .252 (5min)", "Pravděpodobnost")
     
-    
     return
 
   @staticmethod
@@ -82,15 +81,55 @@ class M1:
     M1.plot_modbus_com_tot(dfN, dfA)
     M1.plot_packets(dfN, dfA)    
     M1.plot_detail_252(dfN, dfA)    
+    M1.plot_packets_252_directions(dfA)
   
-  # todo odchozi vs prichozi 
+  @staticmethod
+  def plot_packets_252_directions(dfA):
+    # Create the figures and subplots
+    fig1, ax1 = plt.subplots(figsize=(5, 5))
+    fig2, ax2 = plt.subplots(figsize=(5, 5))
 
-  # @staticmethod 
-  # todo check other connections for tcp 
+    # Get the data for each plot
+    p1 = [dfA.modbus_commands_total, dfA.modbus_succ_total]
+    p2 = [dfA.modbus_commands_total_252, dfA.modbus_succ_total_250_252]
 
-  # @staticmethod
-  # todo request vs succes ratio 
+    labels = ['Příkazy', 'Úspěšné']
 
+    # Create the plots
+    ax1.pie(p1, autopct=lambda pct: M1.format_pct_value(pct, p1), startangle=90)
+    ax1.set_title('Poměr Modbus příkazů a úspěšných odpovědí')
+
+    ax2.pie(p2, autopct=lambda pct: M1.format_pct_value(pct, p2), startangle=90)
+    ax2.set_title('Poměr Modbus příkazů a úspěšných odpovědí s zařízením .252')
+
+    fig1.legend(labels, loc='lower center')
+    fig2.legend(labels, loc='lower center')
+
+    plt.show() 
+    
+    ## Create the figure and subplots
+    #fig, axs = plt.subplots(1, 3, figsize=(15, 5))
+    
+    ## Get the data for each pie chart
+    ## p_250_251 = [dfN.packets_250_251, dfA.packets_250_251]
+    #p1 = [dfA.modbus_commands_total, dfA.modbus_succ_total]
+    #p2 = [dfA.modbus_commands_total_252, dfA.modbus_succ_total_250_252]
+    #p3 = [dfA.packets_250_252_A , dfA.packets_250_252_B]
+    
+    #labels = ['Normální komunikace', 'Útok']
+    
+    ##axs[0].pie(p_250_251, autopct=lambda pct: M1.format_pct_value(pct, p_250_251), startangle=90)
+    ##axs[0].set_title('Pakety mezi .251 a .252')
+    #axs[0].pie(p1, autopct=lambda pct: M1.format_pct_value(pct, p1), startangle=90)
+    #axs[0].set_title('Poměr Modbus příkazů a úspěšných odpovědí')
+    #axs[1].pie(p2, autopct=lambda pct: M1.format_pct_value(pct, p2), startangle=90)
+    #axs[1].set_title('Poměr Modbus příkazů a úspěšných odpovědí s zařízením .252')
+    #axs[2].pie(p3, autopct=lambda pct: M1.format_pct_value(pct, p3), startangle=90)
+    #axs[2].set_title('Poměr odchozích a příchozích paketů na zařízení .252')
+
+    #fig.legend(labels, loc='lower center')
+    #plt.show()
+    
 
   @staticmethod
   def plot_detail_252(dfN, dfA):
@@ -124,7 +163,6 @@ class M1:
     p_250_253 = [dfN.packets_250_253, dfA.packets_250_253]
     p_250_254 = [dfN.packets_250_254, dfA.packets_250_254]
     
-    
     labels = ['Normální komunikace', 'Útok']
     
     #axs[0].pie(p_250_251, autopct=lambda pct: M1.format_pct_value(pct, p_250_251), startangle=90)
@@ -149,7 +187,7 @@ class M1:
     # Get the data for each pie chart
     modbus_read = [dfN.modbus_read_total, dfA.modbus_read_total]
     modbus_write = [dfN.modbus_write_total, dfA.modbus_write_total]
-    modbus_success = [dfN.modbus_success_total, dfA.modbus_success_total]
+    modbus_success = [dfN.modbus_succ_total, dfA.modbus_succ_total]
     
     labels = ['Normální komunikace', 'Útok']
     

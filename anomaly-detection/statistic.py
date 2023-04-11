@@ -46,7 +46,7 @@ class Statistic:
     self.modbus_diagnostic_total = (df['MODBUS_DIAGNOSTIC_REQUESTS'].replace('NIL', '0').astype(int).sum()) * to_five_minutes
     self.modbus_other_total = (df['MODBUS_OTHER_REQUESTS'].replace('NIL', '0').astype(int).sum()) * to_five_minutes
     self.modbus_undefined_total = (df['MODBUS_UNDEFINED_REQUESTS'].replace('NIL', '0').astype(int).sum()) * to_five_minutes
-    self.modbus_success_total = (df['MODBUS_SUCCESS_RESPONSES'].replace('NIL', '0').astype(int).sum()) * to_five_minutes
+    self.modbus_succ_total = (df['MODBUS_SUCCESS_RESPONSES'].replace('NIL', '0').astype(int).sum()) * to_five_minutes
     self.modbus_error_total = (df['MODBUS_ERROR_RESPONSES'].replace('NIL', '0').astype(int).sum()) * to_five_minutes
     self.bytes_250_251 = (df[(df['L3_IPV4_SRC'] == '192.168.88.250') & (df['L3_IPV4_DST'] == '192.168.88.251')]['BYTES'].sum()) * to_five_minutes
     self.bytes_250_252 = (df[(df['L3_IPV4_SRC'] == '192.168.88.250') & (df['L3_IPV4_DST'] == '192.168.88.252')]['BYTES'].sum()) * to_five_minutes
@@ -68,6 +68,18 @@ class Statistic:
     self.modbus_read_250_252 = (df[(df['L3_IPV4_SRC'] == '192.168.88.250') & (df['L3_IPV4_DST'] == '192.168.88.252')]['MODBUS_READ_REQUESTS'].replace('NIL', '0').astype(int).sum()) * to_five_minutes
     self.modbus_read_250_253 = (df[(df['L3_IPV4_SRC'] == '192.168.88.250') & (df['L3_IPV4_DST'] == '192.168.88.253')]['MODBUS_READ_REQUESTS'].replace('NIL', '0').astype(int).sum()) * to_five_minutes
     self.modbus_read_250_254 = (df[(df['L3_IPV4_SRC'] == '192.168.88.250') & (df['L3_IPV4_DST'] == '192.168.88.254')]['MODBUS_READ_REQUESTS'].replace('NIL', '0').astype(int).sum()) * to_five_minutes
+
+    self.modbus_succ_total_250_251 = (df[(df['L3_IPV4_SRC'] == '192.168.88.250') & (df['L3_IPV4_DST'] == '192.168.88.251')]['MODBUS_SUCCESS_RESPONSES'].replace('NIL', '0').astype(int).sum()) * to_five_minutes
+    self.modbus_succ_total_250_252 = (df[(df['L3_IPV4_SRC'] == '192.168.88.250') & (df['L3_IPV4_DST'] == '192.168.88.252')]['MODBUS_SUCCESS_RESPONSES'].replace('NIL', '0').astype(int).sum()) * to_five_minutes
+    self.modbus_succ_total_250_253 = (df[(df['L3_IPV4_SRC'] == '192.168.88.250') & (df['L3_IPV4_DST'] == '192.168.88.253')]['MODBUS_SUCCESS_RESPONSES'].replace('NIL', '0').astype(int).sum()) * to_five_minutes
+    self.modbus_succ_total_250_254 = (df[(df['L3_IPV4_SRC'] == '192.168.88.250') & (df['L3_IPV4_DST'] == '192.168.88.254')]['MODBUS_SUCCESS_RESPONSES'].replace('NIL', '0').astype(int).sum()) * to_five_minutes
+
+    self.modbus_commands_total     = self.modbus_read_total + self.modbus_write_total
+    self.modbus_commands_total_251 = self.modbus_write_250_251 + self.modbus_read_250_251 
+    self.modbus_commands_total_252 = self.modbus_write_250_252 + self.modbus_read_250_252 
+    self.modbus_commands_total_253 = self.modbus_write_250_253 + self.modbus_read_250_253 
+    self.modbus_commands_total_254 = self.modbus_write_250_254 + self.modbus_read_250_254 
+
     self.bytes_250_251_A = (df[(df['L3_IPV4_SRC'] == '192.168.88.250') & (df['L3_IPV4_DST'] == '192.168.88.251')]['BYTES_A'].replace('NIL', '0').astype(int).sum()) * to_five_minutes
     self.bytes_251_250_B = (df[(df['L3_IPV4_SRC'] == '192.168.88.250') & (df['L3_IPV4_DST'] == '192.168.88.251')]['BYTES_B'].replace('NIL', '0').astype(int).sum()) * to_five_minutes
     self.bytes_250_252_A = (df[(df['L3_IPV4_SRC'] == '192.168.88.250') & (df['L3_IPV4_DST'] == '192.168.88.252')]['BYTES_A'].replace('NIL', '0').astype(int).sum()) * to_five_minutes
@@ -77,18 +89,22 @@ class Statistic:
     self.bytes_250_254_A = (df[(df['L3_IPV4_SRC'] == '192.168.88.250') & (df['L3_IPV4_DST'] == '192.168.88.254')]['BYTES_A'].replace('NIL', '0').astype(int).sum()) * to_five_minutes
     self.bytes_254_250_B = (df[(df['L3_IPV4_SRC'] == '192.168.88.250') & (df['L3_IPV4_DST'] == '192.168.88.254')]['BYTES_B'].replace('NIL', '0').astype(int).sum()) * to_five_minutes
     self.packets_250_251_A = (df[(df['L3_IPV4_SRC'] == '192.168.88.250') & (df['L3_IPV4_DST'] == '192.168.88.251')]['PACKETS_A'].replace('NIL', '0').astype(int).sum()) * to_five_minutes
-    self.packets_251_250_B = (df[(df['L3_IPV4_SRC'] == '192.168.88.251') & (df['L3_IPV4_DST'] == '192.168.88.250')]['PACKETS_B'].replace('NIL', '0').astype(int).sum()) * to_five_minutes
     self.packets_250_252_A = (df[(df['L3_IPV4_SRC'] == '192.168.88.250') & (df['L3_IPV4_DST'] == '192.168.88.252')]['PACKETS_A'].replace('NIL', '0').astype(int).sum()) * to_five_minutes
-    self.packets_252_250_B = (df[(df['L3_IPV4_SRC'] == '192.168.88.252') & (df['L3_IPV4_DST'] == '192.168.88.250')]['PACKETS_B'].replace('NIL', '0').astype(int).sum()) * to_five_minutes
     self.packets_250_253_A = (df[(df['L3_IPV4_SRC'] == '192.168.88.250') & (df['L3_IPV4_DST'] == '192.168.88.253')]['PACKETS_A'].replace('NIL', '0').astype(int).sum()) * to_five_minutes
-    self.packets_253_250_B = (df[(df['L3_IPV4_SRC'] == '192.168.88.253') & (df['L3_IPV4_DST'] == '192.168.88.250')]['PACKETS_B'].replace('NIL', '0').astype(int).sum()) * to_five_minutes
     self.packets_250_254_A = (df[(df['L3_IPV4_SRC'] == '192.168.88.250') & (df['L3_IPV4_DST'] == '192.168.88.254')]['PACKETS_A'].replace('NIL', '0').astype(int).sum()) * to_five_minutes
-    self.packets_254_250_B = (df[(df['L3_IPV4_SRC'] == '192.168.88.254') & (df['L3_IPV4_DST'] == '192.168.88.250')]['PACKETS_B'].replace('NIL', '0').astype(int).sum()) * to_five_minutes
+    self.packets_250_251_B = (df[(df['L3_IPV4_SRC'] == '192.168.88.250') & (df['L3_IPV4_DST'] == '192.168.88.251')]['PACKETS_B'].replace('NIL', '0').astype(int).sum()) * to_five_minutes
+    self.packets_250_252_B = (df[(df['L3_IPV4_SRC'] == '192.168.88.250') & (df['L3_IPV4_DST'] == '192.168.88.252')]['PACKETS_B'].replace('NIL', '0').astype(int).sum()) * to_five_minutes
+    self.packets_250_253_B = (df[(df['L3_IPV4_SRC'] == '192.168.88.250') & (df['L3_IPV4_DST'] == '192.168.88.253')]['PACKETS_B'].replace('NIL', '0').astype(int).sum()) * to_five_minutes
+    self.packets_250_254_B = (df[(df['L3_IPV4_SRC'] == '192.168.88.250') & (df['L3_IPV4_DST'] == '192.168.88.254')]['PACKETS_B'].replace('NIL', '0').astype(int).sum()) * to_five_minutes
 
     self.bytes_88_199 = (df[(df['L3_IPV4_SRC'] == '192.168.88.199') | (df['L3_IPV4_DST'] == '192.168.88.199')]['BYTES'].sum()) * to_five_minutes
     self.bytes_88_200 = (df[(df['L3_IPV4_SRC'] == '192.168.88.200') | (df['L3_IPV4_DST'] == '192.168.88.200')]['BYTES'].sum()) * to_five_minutes
 
     self.df = df
+    print("DEBUG: modbus total commands:     " + str(self.modbus_commands_total))
+    print("DEBUG: modbus total succ:         " + str(self.modbus_succ_total))
+    print("DEBUG: modbus total commands 252: " + str(self.modbus_commands_total_252))
+    print("DEBUG: modbus total succ 252:     " + str(self.modbus_succ_total_250_252))
 
   ## standard deviation 
   #  Σ(xᵢ - μ)² / n
