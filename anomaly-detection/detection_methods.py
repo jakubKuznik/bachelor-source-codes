@@ -2,7 +2,7 @@
 # File name: detection_methods.py 
 # Authors: Jakub Kuzník <xkuzni04>
 # institution: VUT FIT 
-# Description: . 
+# Description: File implements 3 statistical methods  
 
 import pandas as pd 
 import matplotlib.pyplot as plt
@@ -11,9 +11,17 @@ import statistic as stat
 import numpy as np
 from scipy.stats import norm
 
-# todo t-test rozdelime utok na x 60 sekundovych intervalu a provedeme t-test 
-# class
 
+## class M3 implements t-test 
+class M3:
+  @staticmethod
+  def m3_t_test(dfN, dfA):
+    print("DEBUG: t-test")
+  
+  # todo t-test rozdelime utok na x 60 sekundovych intervalu a provedeme t-test 
+    return
+
+## class M2 implements and plot 3-sigma rule detection
 class M2:
   @staticmethod
   def m2_3sigma(dfN, dfA):
@@ -73,6 +81,7 @@ class M2:
     ax.set_ylabel(y_desc)
     plt.show()
 
+## class M2 plot basic statistic comparation 
 class M1:
 
   @staticmethod
@@ -81,10 +90,11 @@ class M1:
     M1.plot_modbus_com_tot(dfN, dfA)
     M1.plot_packets(dfN, dfA)    
     M1.plot_detail_252(dfN, dfA)    
-    M1.plot_packets_252_directions(dfA)
+    M1.plot_succ_ratio(dfA)
   
   @staticmethod
-  def plot_packets_252_directions(dfA):
+  ## It plots ratio between send and success commands 
+  def plot_succ_ratio(dfA):
     # Create the figures and subplots
     fig1, ax1 = plt.subplots(figsize=(5, 5))
     fig2, ax2 = plt.subplots(figsize=(5, 5))
@@ -107,31 +117,8 @@ class M1:
 
     plt.show() 
     
-    ## Create the figure and subplots
-    #fig, axs = plt.subplots(1, 3, figsize=(15, 5))
-    
-    ## Get the data for each pie chart
-    ## p_250_251 = [dfN.packets_250_251, dfA.packets_250_251]
-    #p1 = [dfA.modbus_commands_total, dfA.modbus_succ_total]
-    #p2 = [dfA.modbus_commands_total_252, dfA.modbus_succ_total_250_252]
-    #p3 = [dfA.packets_250_252_A , dfA.packets_250_252_B]
-    
-    #labels = ['Normální komunikace', 'Útok']
-    
-    ##axs[0].pie(p_250_251, autopct=lambda pct: M1.format_pct_value(pct, p_250_251), startangle=90)
-    ##axs[0].set_title('Pakety mezi .251 a .252')
-    #axs[0].pie(p1, autopct=lambda pct: M1.format_pct_value(pct, p1), startangle=90)
-    #axs[0].set_title('Poměr Modbus příkazů a úspěšných odpovědí')
-    #axs[1].pie(p2, autopct=lambda pct: M1.format_pct_value(pct, p2), startangle=90)
-    #axs[1].set_title('Poměr Modbus příkazů a úspěšných odpovědí s zařízením .252')
-    #axs[2].pie(p3, autopct=lambda pct: M1.format_pct_value(pct, p3), startangle=90)
-    #axs[2].set_title('Poměr odchozích a příchozích paketů na zařízení .252')
-
-    #fig.legend(labels, loc='lower center')
-    #plt.show()
-    
-
   @staticmethod
+  ## It plots ratio between write/read commands  
   def plot_detail_252(dfN, dfA):
     # Create the figure and subplots
     fig, axs = plt.subplots(1, 2, figsize=(10, 5))
@@ -150,8 +137,8 @@ class M1:
     fig.legend(labels, loc='lower center')
     plt.show()
 
-  ## it display number of packets trasmitted between each station 
   @staticmethod
+  ## it plots number of packets trasmitted between each station 
   def plot_packets(dfN, dfA):
     
     # Create the figure and subplots
@@ -165,8 +152,6 @@ class M1:
     
     labels = ['Normální komunikace', 'Útok']
     
-    #axs[0].pie(p_250_251, autopct=lambda pct: M1.format_pct_value(pct, p_250_251), startangle=90)
-    #axs[0].set_title('Pakety mezi .251 a .252')
     axs[0].pie(p_250_252, autopct=lambda pct: M1.format_pct_value(pct, p_250_252), startangle=90)
     axs[0].set_title('Počet paketů mezi .250 a .252')
     axs[1].pie(p_250_253, autopct=lambda pct: M1.format_pct_value(pct, p_250_253), startangle=90)
@@ -176,8 +161,6 @@ class M1:
 
     fig.legend(labels, loc='lower center')
     plt.show()
-    
-    return
 
   @staticmethod
   def plot_modbus_com_tot(dfN, dfA):
@@ -199,9 +182,7 @@ class M1:
     axs[2].set_title('Modbus Úspěšné příkazy')
 
     fig.legend(labels, loc='lower center')
-    #fig.suptitle('Statistika Modbus komunikace - Normální komunikace vs. útok injektování 10 paketů za minutu')
     plt.show()
-    return
     
     
   # Format the text to show both the percentage and total number

@@ -2,7 +2,7 @@
 # File name: anomaly-detection.py 
 # Authors: Jakub Kuzník <xkuzni04>
 # institution: VUT FIT 
-# Description: . 
+# Description: File parse and process csv  
 
 #### FIELDS
 # EXPORT_COUNTER, ZERO, ONE, CRC, FLOWMON_STARTUP_TIME_SEC, FLOWMON_STARTUP_TIME_MSEC, 
@@ -39,6 +39,8 @@
 
 import pandas as pd 
 
+
+## class parse ipfix csv to pandas 
 class Csv_procesor:
     
     # Constructor - It parse all csvn files to one self.csvn
@@ -67,11 +69,6 @@ class Csv_procesor:
         self.csva_duration = self.mergeDuration(csv_a)
         self.csvn_duration = self.mergeDuration(csv_n)
         
-        #print(self.csva_df[['BYTES', 'PACKETS']])
-        #self.csva_df['BYTES'] += self.csva_df['PACKETS'] * 12
-        #print(self.csva_df[['BYTES', 'PACKETS']])
-        #self.csva_df.to_csv('filename.csv', sep=',', index=False)
-
         print("DEBUG: CSV parsed succesfully")
 
     ## 

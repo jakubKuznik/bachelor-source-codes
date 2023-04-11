@@ -2,11 +2,12 @@
 # File name: statistic.py 
 # Authors: Jakub Kuzník <xkuzni04>
 # institution: VUT FIT 
-# Description: . 
+# Description: File counts statistical data from csv  
 
 import pandas as pd 
 import matplotlib.pyplot as plt
 
+## Class hold statistic information about ipfix 
 class Statistic:
 
   # modbus read  ---> 65B 
@@ -101,10 +102,6 @@ class Statistic:
     self.bytes_88_200 = (df[(df['L3_IPV4_SRC'] == '192.168.88.200') | (df['L3_IPV4_DST'] == '192.168.88.200')]['BYTES'].sum()) * to_five_minutes
 
     self.df = df
-    print("DEBUG: modbus total commands:     " + str(self.modbus_commands_total))
-    print("DEBUG: modbus total succ:         " + str(self.modbus_succ_total))
-    print("DEBUG: modbus total commands 252: " + str(self.modbus_commands_total_252))
-    print("DEBUG: modbus total succ 252:     " + str(self.modbus_succ_total_250_252))
 
   ## standard deviation 
   #  Σ(xᵢ - μ)² / n
@@ -177,12 +174,10 @@ class Statistic:
   # standard deviation 
   def m_write_250_252_sigma(self, df, mean):
     to_five_minutes = 1
-    print(df)
     #  MODBUS_WRITE_REQUESTS
     df_filtered = df[(df['L4_PORT_SRC'] == 502) | (df['L4_PORT_DST'] == 502) 
                    & (df['L3_IPV4_SRC'] == '192.168.88.250') & (df['L3_IPV4_DST'] == "192.168.88.252")
                    & (df['MODBUS_WRITE_REQUESTS'].replace('NIL', '0').astype(int) > 0)]
-    print(df_filtered)
     n = 0
     sum = 0
     for index, row in df_filtered.iterrows():
