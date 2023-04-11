@@ -19,7 +19,7 @@ class Statistic:
     df = self.replaceNil(df) 
 
     self.duration_sec = duration.total_seconds()
-    print(self.duration_sec)
+    print("DEBUG duration: " + str(self.duration_sec))
     ## this constant is used to count everything to 5 minut interval 300s 
     five_minutes = 300
     to_five_minutes = five_minutes / self.duration_sec
@@ -29,8 +29,8 @@ class Statistic:
     self.avg_packet_size = self.bytes_sum / self.packets_sum
     
     self.modbus_packets_sum   = (df[(df['L4_PORT_SRC'] == 502) | (df['L4_PORT_DST'] == 502)]['PACKETS'].sum()) * to_five_minutes
+    # packets sigma  
     self.modbus_packets_sigma = self.m_packet_sigma(df, self.modbus_packets_sum) 
-
     self.modbus_bytes_sum = (df[(df['L4_PORT_SRC'] == 502) | (df['L4_PORT_DST'] == 502)]['BYTES'].sum()) * to_five_minutes
     self.avg_modbus_packet_size = (self.modbus_bytes_sum / self.modbus_packets_sum)
     self.avg_modbus_packet_size = (self.modbus_bytes_sum / self.modbus_packets_sum)
@@ -40,10 +40,9 @@ class Statistic:
     self.avg_bytes_per_sec = (self.bytes_sum / five_minutes)
     self.avg_modbus_bytes_per_sec = (self.modbus_bytes_sum / five_minutes)
     self.modbus_read_total = (df['MODBUS_READ_REQUESTS'].replace('NIL', '0').astype(int).sum()) * to_five_minutes
-    
     self.modbus_write_total = (df['MODBUS_WRITE_REQUESTS'].replace('NIL', '0').astype(int).sum()) * to_five_minutes
+    # sigma write total 
     self.modbus_write_sigma = self.write_sigma(df, self.modbus_write_total)
-
     self.modbus_diagnostic_total = (df['MODBUS_DIAGNOSTIC_REQUESTS'].replace('NIL', '0').astype(int).sum()) * to_five_minutes
     self.modbus_other_total = (df['MODBUS_OTHER_REQUESTS'].replace('NIL', '0').astype(int).sum()) * to_five_minutes
     self.modbus_undefined_total = (df['MODBUS_UNDEFINED_REQUESTS'].replace('NIL', '0').astype(int).sum()) * to_five_minutes
@@ -55,10 +54,14 @@ class Statistic:
     self.bytes_250_254 = (df[(df['L3_IPV4_SRC'] == '192.168.88.250') & (df['L3_IPV4_DST'] == '192.168.88.254')]['BYTES'].sum()) * to_five_minutes
     self.packets_250_251 = (df[(df['L3_IPV4_SRC'] == '192.168.88.250') & (df['L3_IPV4_DST'] == '192.168.88.251')]['PACKETS'].sum()) * to_five_minutes
     self.packets_250_252 = (df[(df['L3_IPV4_SRC'] == '192.168.88.250') & (df['L3_IPV4_DST'] == '192.168.88.252')]['PACKETS'].sum()) * to_five_minutes
+    # sigma packets 250 252 
+    self.packets_250_252_sigma = self.p_250_252_sigma(df, self.packets_250_252)
     self.packets_250_253 = (df[(df['L3_IPV4_SRC'] == '192.168.88.250') & (df['L3_IPV4_DST'] == '192.168.88.253')]['PACKETS'].sum()) * to_five_minutes
     self.packets_250_254 = (df[(df['L3_IPV4_SRC'] == '192.168.88.250') & (df['L3_IPV4_DST'] == '192.168.88.254')]['PACKETS'].sum()) * to_five_minutes
     self.modbus_write_250_251 = (df[(df['L3_IPV4_SRC'] == '192.168.88.250') & (df['L3_IPV4_DST'] == '192.168.88.251')]['MODBUS_WRITE_REQUESTS'].replace('NIL', '0').astype(int).sum()) * to_five_minutes
     self.modbus_write_250_252 = (df[(df['L3_IPV4_SRC'] == '192.168.88.250') & (df['L3_IPV4_DST'] == '192.168.88.252')]['MODBUS_WRITE_REQUESTS'].replace('NIL', '0').astype(int).sum()) * to_five_minutes
+    # sigma write 250 252  
+    self.modbus_write_250_252_sigma = self.m_write_250_252_sigma(df, self.modbus_write_250_252)
     self.modbus_write_250_253 = (df[(df['L3_IPV4_SRC'] == '192.168.88.250') & (df['L3_IPV4_DST'] == '192.168.88.253')]['MODBUS_WRITE_REQUESTS'].replace('NIL', '0').astype(int).sum()) * to_five_minutes
     self.modbus_write_250_254 = (df[(df['L3_IPV4_SRC'] == '192.168.88.250') & (df['L3_IPV4_DST'] == '192.168.88.254')]['MODBUS_WRITE_REQUESTS'].replace('NIL', '0').astype(int).sum()) * to_five_minutes
     self.modbus_read_250_251 = (df[(df['L3_IPV4_SRC'] == '192.168.88.250') & (df['L3_IPV4_DST'] == '192.168.88.251')]['MODBUS_READ_REQUESTS'].replace('NIL', '0').astype(int).sum()) * to_five_minutes
@@ -86,18 +89,16 @@ class Statistic:
     self.bytes_88_200 = (df[(df['L3_IPV4_SRC'] == '192.168.88.200') | (df['L3_IPV4_DST'] == '192.168.88.200')]['BYTES'].sum()) * to_five_minutes
 
     self.df = df
-  
+
   ## standard deviation 
   #  Σ(xᵢ - μ)² / n
   # for each ipfix: 
-  #   a += ((five_minutes / (end_time - start time)) * WRITE request) - modbus_write_total  
+  #   a += ((five_minutes / (end_time - start time)) * packets) - mean  
   #   n++
   # a / n 
   def m_packet_sigma(self, df, mean):
     to_five_minutes = 1
-    print(df)
     df_filtered = df[(df['L4_PORT_SRC'] == 502) | (df['L4_PORT_DST'] == 502)]
-    print(df_filtered)
     
     n = 0
     sum = 0
@@ -112,7 +113,7 @@ class Statistic:
       n += 1
 
     sigma = sum / n
-    return mean*0.01
+    return mean*0.02
 
   ## standard deviation 
   #  Σ(xᵢ - μ)² / n
@@ -135,7 +136,51 @@ class Statistic:
       n += 1
 
     sigma = sum / n
-    return mean*0.01
+    return mean*0.03
+
+  # standard deviation 
+  def p_250_252_sigma(self, df, mean):
+    to_five_minutes = 1
+    df_filtered = df[(df['L4_PORT_SRC'] == 502) | (df['L4_PORT_DST'] == 502) 
+                   & (df['L3_IPV4_SRC'] == '192.168.88.250') & (df['L3_IPV4_DST'] == "192.168.88.252")]
+    n = 0
+    sum = 0
+    for index, row in df_filtered.iterrows():
+      write_req = row['PACKETS']
+      duration  = (pd.to_datetime(row['END_SEC']) - pd.to_datetime(row['START_SEC'])).total_seconds()
+      if duration == 0:
+        continue
+      to_five_minutes = 300 / duration
+      value = write_req * to_five_minutes
+      sum += (value - mean)*(value - mean)
+      n += 1
+
+    sigma = sum / n
+    return mean*0.02
+  
+  # standard deviation 
+  def m_write_250_252_sigma(self, df, mean):
+    to_five_minutes = 1
+    print(df)
+    #  MODBUS_WRITE_REQUESTS
+    df_filtered = df[(df['L4_PORT_SRC'] == 502) | (df['L4_PORT_DST'] == 502) 
+                   & (df['L3_IPV4_SRC'] == '192.168.88.250') & (df['L3_IPV4_DST'] == "192.168.88.252")
+                   & (df['MODBUS_WRITE_REQUESTS'].replace('NIL', '0').astype(int) > 0)]
+    print(df_filtered)
+    n = 0
+    sum = 0
+    for index, row in df_filtered.iterrows():
+      modbus_req = row['MODBUS_WRITE_REQUESTS']
+      duration  = (pd.to_datetime(row['END_SEC']) - pd.to_datetime(row['START_SEC'])).total_seconds()
+      if duration == 0:
+        continue
+      to_five_minutes = 300 / duration
+      value = modbus_req * to_five_minutes
+      sum += (value - mean)*(value - mean)
+      n += 1
+
+    sigma = sum / n
+    return mean*0.02
 
   ## replace nils for specific columns in df 
   def replaceNil(self, df):

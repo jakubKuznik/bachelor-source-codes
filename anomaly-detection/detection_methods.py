@@ -11,6 +11,9 @@ import statistic as stat
 import numpy as np
 from scipy.stats import norm
 
+# todo t-test rozdelime utok na x 60 sekundovych intervalu a provedeme t-test 
+# class
+
 class M2:
   @staticmethod
   def m2_3sigma(dfN, dfA):
@@ -38,6 +41,9 @@ class M2:
     #upper_bound2 = mean + (3 * sigma)
     #lower_bound2 = mean - (3 * sigma)
     M2.plot_packets(mean2, sigma2, dfA.modbus_packets_sum)
+
+    # todo bytes mezi 252 a masterem 
+    # todo writes mezi 252 a masterem 
 
     return
   
