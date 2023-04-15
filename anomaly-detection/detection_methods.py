@@ -159,37 +159,69 @@ class M1:
     M1.plot_packets(dfN, dfA)    
     M1.plot_detail_252(dfN, dfA)    
     M1.plot_succ_ratio(dfA)
+
+  @staticmethod
+  def format_pct_value(pct, allvals):
+    absolute = int(pct/100.*np.sum(allvals))
+    return "{:.1f}%".format(pct)
   
   @staticmethod
   def plot_succ_ratio(dfA):
-    # Create the figures and subplots
-    fig1, ax1 = plt.subplots(figsize=(5, 5))
-    fig2, ax2 = plt.subplots(figsize=(5, 5))
+    # Create the figure and subplots
+    fig, ax   = plt.subplots(figsize=(1, 1))
+    fig2, ax2 = plt.subplots(figsize=(1, 1))
 
-    # Get the data for each plot
+    # Get the data
     total_commands = dfA.modbus_commands_total
-    successful_commands = dfA.modbus_succ_total
+    succ_commands  = dfA.modbus_succ_total
+
     total_commands_252 = dfA.modbus_commands_total_252
     successful_commands_250_252 = dfA.modbus_succ_total_250_252
 
+    if succ_commands > total_commands: 
+      succ_commands = total_commands
+    if successful_commands_250_252 > total_commands_252:
+      successful_commands_250_252 = total_commands_252
+
     # Calculate the ratios
-    ratio1 = [successful_commands, total_commands - successful_commands]
-    ratio2 = [successful_commands_250_252, total_commands_252 - successful_commands_250_252]
+    ratio1 = successful_commands_250_252 / total_commands_252
+    ratio2 = (total_commands_252 - successful_commands_250_252) / total_commands_252
 
-    labels = ['Úspěšné', 'Neúspěšné']
+    ratio3 = succ_commands / total_commands
+    ratio4 = (total_commands - succ_commands) / total_commands
 
-    # Create the plots
-    ax1.pie(ratio1, autopct=lambda pct: M1.format_pct_value(pct, ratio1), startangle=90)
-    ax1.set_title('Poměr úspěšných a neúspěšných Modbus příkazů')
+    # Create the bar plot
+    ax.barh(0, successful_commands_250_252, height=0.5)
+    ax.barh(0, total_commands_252 - successful_commands_250_252, left=successful_commands_250_252, height=0.5, color='orange')
+    
+    # Create the bar plot
+    ax2.barh(0, succ_commands, height=0.5)
+    ax2.barh(0, total_commands - succ_commands, left=succ_commands, height=0.5, color='orange')
 
-    ax2.pie(ratio2, autopct=lambda pct: M1.format_pct_value(pct, ratio2), startangle=90)
-    ax2.set_title('Poměr úspěšných a neúspěšných Modbus příkazů s zařízením .252')
+    # Set the x and y limits
+    ax.set_xlim([0, total_commands_252])
+    ax.set_ylim([-0.25, 0.25])
+    
+    # Set the x and y limits
+    ax2.set_xlim([0, total_commands])
+    ax2.set_ylim([-0.25, 0.25])
 
-    fig1.legend(labels, loc='lower center')
-    fig2.legend(labels, loc='lower center')
+    # Set the tick labels and title
+    ax.set_yticks([])
+    ax.set_title('Počet úspěšných a neúspěšných Modbus příkazů s zařízením .252')
+    
+    # Set the tick labels and title
+    ax2.set_yticks([])
+    ax2.set_title('Počet úspěšných a neúspěšných Modbus příkazů')
+
+    # Add the percentage labels
+    ax.text(successful_commands_250_252/2, 0, M1.format_pct_value(ratio1*100, [successful_commands_250_252, total_commands_252 - successful_commands_250_252]), ha='center', va='center', color='white')
+    ax.text(successful_commands_250_252 + (total_commands_252 - successful_commands_250_252)/2, 0, M1.format_pct_value(ratio2*100, [total_commands_252 - successful_commands_250_252, successful_commands_250_252]), ha='center', va='center', color='white')
+    ax2.text(succ_commands/2, 0, M1.format_pct_value(ratio3*100, [succ_commands, total_commands - succ_commands]), ha='center', va='center', color='white')
+    ax2.text(succ_commands + (total_commands - succ_commands)/2, 0, M1.format_pct_value(ratio4*100, [total_commands - succ_commands, succ_commands]), ha='center', va='center', color='white')
 
     plt.show()
-    
+
   @staticmethod
   ## It plots ratio between write/read commands  
   def plot_detail_252(dfN, dfA):
@@ -200,7 +232,8 @@ class M1:
     write = [dfN.modbus_write_250_252 , dfA.modbus_write_250_252]
     read  = [dfN.modbus_read_250_252, dfA.modbus_read_250_252]
     
-    labels = ['Normální komunikace', 'Útok']
+    #labels = ['Normální komunikace', 'Útok']
+    labels = ['Normální komunikace', 'Testovaná komunikace']
     
     axs[0].pie(write, autopct=lambda pct: M1.format_pct_value(pct, write), startangle=90)
     axs[0].set_title('Počet write příkazů na zařízení .252')
@@ -223,14 +256,15 @@ class M1:
     p_250_253 = [dfN.packets_250_253, dfA.packets_250_253]
     p_250_254 = [dfN.packets_250_254, dfA.packets_250_254]
     
-    labels = ['Normální komunikace', 'Útok']
+    labels = ['Normální komunikace', 'Testovaná komunikace']
+    #labels = ['Normální komunikace', 'Útok']
     
     axs[0].pie(p_250_252, autopct=lambda pct: M1.format_pct_value(pct, p_250_252), startangle=90)
     axs[0].set_title('Počet paketů mezi .250 a .252')
     axs[1].pie(p_250_253, autopct=lambda pct: M1.format_pct_value(pct, p_250_253), startangle=90)
-    axs[1].set_title('Počet paketů .250 a .253')
+    axs[1].set_title('Počet paketů mezi .250 a .253')
     axs[2].pie(p_250_254, autopct=lambda pct: M1.format_pct_value(pct, p_250_254), startangle=90)
-    axs[2].set_title('Počet paketů .250 a .254')
+    axs[2].set_title('Počet paketů mezi .250 a .254')
 
     fig.legend(labels, loc='lower center')
     plt.show()
@@ -245,7 +279,8 @@ class M1:
     modbus_write = [dfN.modbus_write_total, dfA.modbus_write_total]
     modbus_success = [dfN.modbus_succ_total, dfA.modbus_succ_total]
     
-    labels = ['Normální komunikace', 'Útok']
+    labels = ['Normální komunikace', 'Testovaná komunikace']
+    #labels = ['Normální komunikace', 'Útok']
     
     axs[0].pie(modbus_read, autopct=lambda pct: M1.format_pct_value(pct, modbus_read), startangle=90)
     axs[0].set_title('Modbus Read příkazy')
