@@ -161,29 +161,34 @@ class M1:
     M1.plot_succ_ratio(dfA)
   
   @staticmethod
-  ## It plots ratio between send and success commands 
   def plot_succ_ratio(dfA):
     # Create the figures and subplots
     fig1, ax1 = plt.subplots(figsize=(5, 5))
     fig2, ax2 = plt.subplots(figsize=(5, 5))
 
     # Get the data for each plot
-    p1 = [dfA.modbus_commands_total, dfA.modbus_succ_total]
-    p2 = [dfA.modbus_commands_total_252, dfA.modbus_succ_total_250_252]
+    total_commands = dfA.modbus_commands_total
+    successful_commands = dfA.modbus_succ_total
+    total_commands_252 = dfA.modbus_commands_total_252
+    successful_commands_250_252 = dfA.modbus_succ_total_250_252
 
-    labels = ['Příkazy', 'Úspěšné']
+    # Calculate the ratios
+    ratio1 = [successful_commands, total_commands - successful_commands]
+    ratio2 = [successful_commands_250_252, total_commands_252 - successful_commands_250_252]
+
+    labels = ['Úspěšné', 'Neúspěšné']
 
     # Create the plots
-    ax1.pie(p1, autopct=lambda pct: M1.format_pct_value(pct, p1), startangle=90)
-    ax1.set_title('Poměr Modbus příkazů a úspěšných odpovědí')
+    ax1.pie(ratio1, autopct=lambda pct: M1.format_pct_value(pct, ratio1), startangle=90)
+    ax1.set_title('Poměr úspěšných a neúspěšných Modbus příkazů')
 
-    ax2.pie(p2, autopct=lambda pct: M1.format_pct_value(pct, p2), startangle=90)
-    ax2.set_title('Poměr Modbus příkazů a úspěšných odpovědí s zařízením .252')
+    ax2.pie(ratio2, autopct=lambda pct: M1.format_pct_value(pct, ratio2), startangle=90)
+    ax2.set_title('Poměr úspěšných a neúspěšných Modbus příkazů s zařízením .252')
 
     fig1.legend(labels, loc='lower center')
     fig2.legend(labels, loc='lower center')
 
-    plt.show() 
+    plt.show()
     
   @staticmethod
   ## It plots ratio between write/read commands  
