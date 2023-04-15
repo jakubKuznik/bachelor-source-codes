@@ -4,7 +4,10 @@
 # institution: VUT FIT 
 # Description: . 
 # Execution:
-#      python3 anomaly_detection.py -csva a.csv -cvsn // only get basic statistic 
+#      python3 anomaly_detection.py -csva a.csv a1.csv -cvsn b.csv  # basic stats
+#      python3 anomaly_detection.py -csva a.csv -cvsn b.csv -m1     # advanced statistic 
+#      python3 anomaly_detection.py -csva a.csv -cvsn b.csv -m2     # 3-sigma  
+#      python3 anomaly_detection.py -csva a.csv -cvsn b.csv -m3     # T-test  
 
 import argparse
 import csv_procesor
@@ -16,8 +19,25 @@ import detection_methods as dm
 class Arg_parse:
     
     def print_help(self):
-        ## todo add message from -h
-        print("")
+        print("Program implements 3 detections methods. If there is no method, it will print basic statistic.")
+        print("--------------------------------------------------------")
+        print("Examples:")
+        print("   python3 anomaly_detection.py -csva a.csv a1.csv -cvsn b.csv  # basic stats")
+        print("   python3 anomaly_detection.py -csva a.csv -cvsn b.csv -m1     # advanced statistic ")
+        print("   python3 anomaly_detection.py -csva a.csv -cvsn b.csv -m2     # 3-sigma ")
+        print("   python3 anomaly_detection.py -csva a.csv -cvsn b.csv -m3     # T-test ")
+        print("--------------------------------------------------------")
+        print("-csvn 1.csv 2.csv ... n.csv")
+        print("     List with Modbus TCP IPFIX csvs that represent normall comunication")
+        print("-csva 1.csv 2.csv ... n.csv")
+        print("     List with Modbus TCP IPFIX cvss that will be investigated (compared to normal)")
+        print("-m1")
+        print("     Advanced statistic")
+        print("-m2")
+        print("     3-sigma")
+        print("-m3")
+        print("     T-test")
+        print("--------------------------------------------------------")
 
     def __init__(self):
         parser = argparse.ArgumentParser()
