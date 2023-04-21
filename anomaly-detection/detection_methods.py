@@ -156,10 +156,10 @@ class M1:
   @staticmethod
   def m1_basic_stats(dfN, dfA):
 
-    #M1.plot_modbus_com_tot(dfN, dfA)
-    #M1.plot_packets(dfN, dfA)    
+    M1.plot_modbus_com_tot(dfN, dfA)
+    M1.plot_packets(dfN, dfA)    
     M1.plot_detail_252(dfN, dfA)    
-    #M1.plot_succ_ratio(dfA)
+    M1.plot_succ_ratio(dfA)
 
   @staticmethod
   def format_pct_value(pct, allvals):
@@ -285,7 +285,7 @@ class M1:
     ## subplot 3 
     df = pd.DataFrame({' ': ['Normal', 'Test'], '  ': [dfN.modbus_succ_total, dfA.modbus_succ_total]})
     sns.barplot(x=' ', y='  ', data=df, ax=axs[2])
-    axs[2].set_title('Modbus write příkazy', fontsize=10)
+    axs[2].set_title('Modbus uspešné příkazy', fontsize=10)
 
     plt.subplots_adjust(wspace=0.5)
     plt.show() 
