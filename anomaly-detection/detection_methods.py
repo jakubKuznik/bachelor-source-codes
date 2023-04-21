@@ -157,8 +157,8 @@ class M1:
   def m1_basic_stats(dfN, dfA):
 
     #M1.plot_modbus_com_tot(dfN, dfA)
-    M1.plot_packets(dfN, dfA)    
-    #M1.plot_detail_252(dfN, dfA)    
+    #M1.plot_packets(dfN, dfA)    
+    M1.plot_detail_252(dfN, dfA)    
     #M1.plot_succ_ratio(dfA)
 
   @staticmethod
@@ -227,21 +227,19 @@ class M1:
   ## It plots ratio between write/read commands  
   def plot_detail_252(dfN, dfA):
     # Create the figure and subplots
-    fig, axs = plt.subplots(1, 2, figsize=(10, 5))
+    fig, axs = plt.subplots(1, 2, figsize=(6, 2))
     
-    # Get the data for each pie chart
-    write = [dfN.modbus_write_250_252 , dfA.modbus_write_250_252]
-    read  = [dfN.modbus_read_250_252, dfA.modbus_read_250_252]
+    ## subplot 1 
+    df = pd.DataFrame({' ': ['Normal', 'Test'], '  ': [dfN.modbus_write_250_252, dfA.modbus_write_250_252]})
+    sns.barplot(x=' ', y='  ', data=df, ax=axs[0])
+    axs[0].set_title('Počet write příkazů na zařízení .252', fontsize=10)
     
-    #labels = ['Normální komunikace', 'Útok']
-    labels = ['Normální komunikace', 'Testovaná komunikace']
+    ## subplot 2 
+    df = pd.DataFrame({' ': ['Normal', 'Test'], '  ': [dfN.modbus_read_250_252, dfA.modbus_read_250_252]})
+    sns.barplot(x=' ', y='  ', data=df, ax=axs[1])
+    axs[1].set_title('Počet read příkazů na zařízení .252', fontsize=10)
     
-    axs[0].pie(write, autopct=lambda pct: M1.format_pct_value(pct, write), startangle=90)
-    axs[0].set_title('Počet write příkazů na zařízení .252')
-    axs[1].pie(read, autopct=lambda pct: M1.format_pct_value(pct, read), startangle=90)
-    axs[1].set_title('Počet read příkazů na zařízení .252')
-
-    fig.legend(labels, loc='lower center')
+    plt.subplots_adjust(wspace=0.5)
     plt.show()
 
   @staticmethod
@@ -291,6 +289,27 @@ class M1:
 
     plt.subplots_adjust(wspace=0.5)
     plt.show() 
+  
+  @staticmethod
+  ## It plots ratio between write/read commands  
+  def pie_plot_detail_252(dfN, dfA):
+    # Create the figure and subplots
+    fig, axs = plt.subplots(1, 2, figsize=(10, 5))
+    
+    # Get the data for each pie chart
+    write = [dfN.modbus_write_250_252 , dfA.modbus_write_250_252]
+    read  = [dfN.modbus_read_250_252, dfA.modbus_read_250_252]
+    
+    #labels = ['Normální komunikace', 'Útok']
+    labels = ['Normální komunikace', 'Testovaná komunikace']
+    
+    axs[0].pie(write, autopct=lambda pct: M1.format_pct_value(pct, write), startangle=90)
+    axs[0].set_title('Počet write příkazů na zařízení .252')
+    axs[1].pie(read, autopct=lambda pct: M1.format_pct_value(pct, read), startangle=90)
+    axs[1].set_title('Počet read příkazů na zařízení .252')
+
+    fig.legend(labels, loc='lower center')
+    plt.show()
   
   
   @staticmethod
