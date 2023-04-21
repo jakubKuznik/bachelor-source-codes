@@ -6,11 +6,11 @@
 
 import pandas as pd 
 import matplotlib.pyplot as plt
-import statistic as stat
 from scipy.stats import ttest_1samp
 
 import numpy as np
 from scipy.stats import norm
+import seaborn as sns
 
 import warnings
 warnings.filterwarnings("ignore", message="The frame.append method is deprecated and will be removed from pandas in a future version. Use pandas.concat instead.")
@@ -147,6 +147,7 @@ class M2:
     ax.scatter(anomaly, 0, marker='x', color='red')
     ax.set_xlabel(x_desc)
     ax.set_ylabel(y_desc)
+
     plt.show()
 
 ## class M2 plot basic statistic comparation 
@@ -156,9 +157,9 @@ class M1:
   def m1_basic_stats(dfN, dfA):
 
     M1.plot_modbus_com_tot(dfN, dfA)
-    M1.plot_packets(dfN, dfA)    
-    M1.plot_detail_252(dfN, dfA)    
-    M1.plot_succ_ratio(dfA)
+    #M1.plot_packets(dfN, dfA)    
+    #M1.plot_detail_252(dfN, dfA)    
+    #M1.plot_succ_ratio(dfA)
 
   @staticmethod
   def format_pct_value(pct, allvals):
@@ -246,7 +247,7 @@ class M1:
   @staticmethod
   ## it plots number of packets trasmitted between each station 
   def plot_packets(dfN, dfA):
-    
+
     # Create the figure and subplots
     fig, axs = plt.subplots(1, 3, figsize=(15, 5))
     
@@ -269,8 +270,43 @@ class M1:
     fig.legend(labels, loc='lower center')
     plt.show()
 
+    # Get the data for each bar chart
+    #modbus_read = [dfN.modbus_read_total, dfA.modbus_read_total]
+    #modbus_write = [dfN.modbus_write_total, dfA.modbus_write_total]
+    #modbus_success = [dfN.modbus_succ_total, dfA.modbus_succ_total]
   @staticmethod
   def plot_modbus_com_tot(dfN, dfA):
+    # Create the figure and subplots
+    fig, axs = plt.subplots(1, 3, figsize=(6, 2))
+
+    ## subplot 1 
+    # Create a pandas DataFrame to use for the bar chart
+    df = pd.DataFrame({' ': ['Normal', 'Test'], '  ': [dfN.modbus_read_total, dfA.modbus_read_total]})
+    # Create the bar chart using seaborn
+    sns.barplot(x=' ', y='  ', data=df, ax=axs[0])
+    axs[0].set_title('Modbus read příkazy', fontsize=10)
+    
+    ## subplot 2 
+    # Create a pandas DataFrame to use for the bar chart
+    df = pd.DataFrame({' ': ['Normal', 'Test'], '  ': [dfN.modbus_write_total, dfA.modbus_write_total]})
+    # Create the bar chart using seaborn
+    sns.barplot(x=' ', y='  ', data=df, ax=axs[1])
+    axs[1].set_title('Modbus write příkazy', fontsize=10)
+
+    ## subplot 3 
+    # Create a pandas DataFrame to use for the bar chart
+    df = pd.DataFrame({' ': ['Normal', 'Test'], '  ': [dfN.modbus_succ_total, dfA.modbus_succ_total]})
+    # Create the bar chart using seaborn
+    sns.barplot(x=' ', y='  ', data=df, ax=axs[2])
+    axs[2].set_title('Modbus write příkazy', fontsize=10)
+
+    plt.subplots_adjust(wspace=0.5)
+    plt.show() 
+
+
+
+  @staticmethod
+  def pie_plot_modbus_com_tot(dfN, dfA):
     # Create the figure and subplots
     fig, axs = plt.subplots(1, 3, figsize=(15, 5))
     
@@ -291,7 +327,6 @@ class M1:
 
     fig.legend(labels, loc='lower center')
     plt.show()
-    
     
   # Format the text to show both the percentage and total number
   @staticmethod
