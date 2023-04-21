@@ -156,8 +156,8 @@ class M1:
   @staticmethod
   def m1_basic_stats(dfN, dfA):
 
-    M1.plot_modbus_com_tot(dfN, dfA)
-    #M1.plot_packets(dfN, dfA)    
+    #M1.plot_modbus_com_tot(dfN, dfA)
+    M1.plot_packets(dfN, dfA)    
     #M1.plot_detail_252(dfN, dfA)    
     #M1.plot_succ_ratio(dfA)
 
@@ -247,6 +247,55 @@ class M1:
   @staticmethod
   ## it plots number of packets trasmitted between each station 
   def plot_packets(dfN, dfA):
+    
+    # Create the figure and subplots
+    fig, axs = plt.subplots(1, 3, figsize=(6, 2))
+
+    ## subplot 1 
+    df = pd.DataFrame({' ': ['Normal', 'Test'], '  ': [dfN.packets_250_252, dfA.packets_250_252]})
+    sns.barplot(x=' ', y='  ', data=df, ax=axs[0])
+    axs[0].set_title('Počet paketů mezi .250 a .252', fontsize=10)
+    
+    ## subplot 2 
+    df = pd.DataFrame({' ': ['Normal', 'Test'], '  ': [dfN.packets_250_253, dfA.packets_250_253]})
+    sns.barplot(x=' ', y='  ', data=df, ax=axs[1])
+    axs[1].set_title('Počet paketů mezi .250 a .253', fontsize=10)
+
+    ## subplot 3 
+    df = pd.DataFrame({' ': ['Normal', 'Test'], '  ': [dfN.packets_250_254, dfA.packets_250_254]})
+    sns.barplot(x=' ', y='  ', data=df, ax=axs[2])
+    axs[2].set_title('Počet paketů mezi .250 a .254', fontsize=10)
+
+    plt.subplots_adjust(wspace=0.5)
+    plt.show() 
+
+  @staticmethod
+  def plot_modbus_com_tot(dfN, dfA):
+    # Create the figure and subplots
+    fig, axs = plt.subplots(1, 3, figsize=(6, 2))
+
+    ## subplot 1 
+    df = pd.DataFrame({' ': ['Normal', 'Test'], '  ': [dfN.modbus_read_total, dfA.modbus_read_total]})
+    sns.barplot(x=' ', y='  ', data=df, ax=axs[0])
+    axs[0].set_title('Modbus read příkazy', fontsize=10)
+    
+    ## subplot 2 
+    df = pd.DataFrame({' ': ['Normal', 'Test'], '  ': [dfN.modbus_write_total, dfA.modbus_write_total]})
+    sns.barplot(x=' ', y='  ', data=df, ax=axs[1])
+    axs[1].set_title('Modbus write příkazy', fontsize=10)
+
+    ## subplot 3 
+    df = pd.DataFrame({' ': ['Normal', 'Test'], '  ': [dfN.modbus_succ_total, dfA.modbus_succ_total]})
+    sns.barplot(x=' ', y='  ', data=df, ax=axs[2])
+    axs[2].set_title('Modbus write příkazy', fontsize=10)
+
+    plt.subplots_adjust(wspace=0.5)
+    plt.show() 
+  
+  
+  @staticmethod
+  ## it plots number of packets trasmitted between each station 
+  def pie_plot_packets(dfN, dfA):
 
     # Create the figure and subplots
     fig, axs = plt.subplots(1, 3, figsize=(15, 5))
@@ -269,40 +318,6 @@ class M1:
 
     fig.legend(labels, loc='lower center')
     plt.show()
-
-    # Get the data for each bar chart
-    #modbus_read = [dfN.modbus_read_total, dfA.modbus_read_total]
-    #modbus_write = [dfN.modbus_write_total, dfA.modbus_write_total]
-    #modbus_success = [dfN.modbus_succ_total, dfA.modbus_succ_total]
-  @staticmethod
-  def plot_modbus_com_tot(dfN, dfA):
-    # Create the figure and subplots
-    fig, axs = plt.subplots(1, 3, figsize=(6, 2))
-
-    ## subplot 1 
-    # Create a pandas DataFrame to use for the bar chart
-    df = pd.DataFrame({' ': ['Normal', 'Test'], '  ': [dfN.modbus_read_total, dfA.modbus_read_total]})
-    # Create the bar chart using seaborn
-    sns.barplot(x=' ', y='  ', data=df, ax=axs[0])
-    axs[0].set_title('Modbus read příkazy', fontsize=10)
-    
-    ## subplot 2 
-    # Create a pandas DataFrame to use for the bar chart
-    df = pd.DataFrame({' ': ['Normal', 'Test'], '  ': [dfN.modbus_write_total, dfA.modbus_write_total]})
-    # Create the bar chart using seaborn
-    sns.barplot(x=' ', y='  ', data=df, ax=axs[1])
-    axs[1].set_title('Modbus write příkazy', fontsize=10)
-
-    ## subplot 3 
-    # Create a pandas DataFrame to use for the bar chart
-    df = pd.DataFrame({' ': ['Normal', 'Test'], '  ': [dfN.modbus_succ_total, dfA.modbus_succ_total]})
-    # Create the bar chart using seaborn
-    sns.barplot(x=' ', y='  ', data=df, ax=axs[2])
-    axs[2].set_title('Modbus write příkazy', fontsize=10)
-
-    plt.subplots_adjust(wspace=0.5)
-    plt.show() 
-
 
 
   @staticmethod
